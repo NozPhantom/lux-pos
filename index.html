@@ -51,7 +51,6 @@ canvas { max-width: 100%; height: auto !important; }
 
 <div id="header-info">
     <div id="time-display" style="font-size: 22px; font-weight: 800;">00:00:00</div>
-    <div id="cloud-status" style="font-size: 10px; color: var(--primary); margin-top: 5px;">VERBINDUNG...</div>
     <div id="live-stempel" style="display:none; color:var(--success); font-size: 13px; font-weight: 600; margin-top: 4px;">• SHIFT ACTIVE</div>
 </div>
 
@@ -133,7 +132,7 @@ canvas { max-width: 100%; height: auto !important; }
 <div id="view-u-logs" style="max-height:250px; overflow-y:auto; margin-top:25px; border-top:1px solid var(--border);"></div><button class="btn-dark" style="width:100%; margin-top:30px;" onclick="closeModals()">ZURÜCK</button></div></div>
 
 <script>
-// CLOUD KONFIGURATION
+// CLOUD LINK
 const CLOUD_DB = "https://the-lux-system-default-rtdb.firebaseio.com/data.json";
 
 const WH_MAIN = "https://discord.com/api/webhooks/1480511718445547564/eF7F71sEzjAeEuisEI8C59wX9yzhiw8ClXaGHG45Vo7ZLuZgNXftx0tUpgG-w6ISe2pe";
@@ -156,30 +155,20 @@ let lager = {};
 let basket = {}, manualBets = [], currentUser = null, activeShiftStart = null, currentEditLager = null, selectedUserIdx = null;
 let chartW, chartM, chartY;
 
-// GLOBAL SAVE
+// CLOUD SAVE FUNKTION
 async function save() { 
-    document.getElementById('cloud-status').innerText = "SPEICHERE...";
+    localStorage.setItem('lux_u_v17', JSON.stringify(users)); 
+    localStorage.setItem('lux_l_v17', JSON.stringify(lager));
     await fetch(CLOUD_DB, { method: 'PUT', body: JSON.stringify({ users, lager }) });
-    document.getElementById('cloud-status').innerText = "CLOUD AKTIV";
 }
 
-// GLOBAL LOAD
+// CLOUD LOAD FUNKTION
 async function load() {
     try {
         const r = await fetch(CLOUD_DB);
         const d = await r.json();
-        if(d) {
-            if(d.users) users = d.users;
-            if(d.lager) lager = d.lager;
-            document.getElementById('cloud-status').innerText = "CLOUD AKTIV";
-            if(currentUser) {
-                if(document.getElementById('dash-ui').classList.contains('active')) renderManagement();
-                // Update das UI falls man gerade in einer Kategorie ist
-                const activeBtn = document.querySelector('.btn-cat.active');
-                if(activeBtn) renderPOS(activeBtn.innerText === "Flüge" ? "Heli" : activeBtn.innerText);
-            }
-        }
-    } catch(e) { console.log("Ladefehler"); }
+        if(d) { users = d.users || users; lager = d.lager || lager; }
+    } catch(e) {}
 }
 
 function currentUserIndex() { return users.findIndex(u => u.name === currentUser.name); }
@@ -193,4 +182,165 @@ function login() {
         document.getElementById('main-ui').classList.add('active');
         if(["Geschäftsinhaber", "Geschäftsführer", "Management"].includes(f.role)) document.getElementById('dash-btn').style.display = 'block';
         ALL_PRODUCTS.forEach(i => { if(lager[i.n] === undefined) lager[i.n] = 999; });
-        changeTab
+        changeTab('Getränke', document.querySelector('.btn-cat'));
+    } else alert("CODE FALSCH");
+}
+
+function changeTab(cat, btn) {
+    document.querySelectorAll('.btn-cat').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+    if(cat === "Wetten") { document.getElementById('grid-pos').style.display='none'; document.getElementById('bet-form').style.display='block'; }
+    else { document.getElementById('grid-pos').style.display='grid'; document.getElementById('bet-form').style.display='none'; renderPOS(cat === "Flüge" ? "Heli" : cat); }
+}
+
+function renderPOS(cat) {
+    document.getElementById('grid-pos').innerHTML = ALL_PRODUCTS.filter(i => i.c === cat).map(i => `
+        <div class="card">
+            <div style="display:flex; justify-content:space-between"><b>${i.n}</b><span style="color:var(--primary)">${i.p}€</span></div>
+            <div style="font-size:12px; color:var(--text-dim); margin-top:8px;">Lager: ${lager[i.n] === Infinity ? '∞' : lager[i.n]}</div>
+            <div class="qty-ctrl">
+                <button class="qty-btn" onclick="updateBasket('${i.n}',-1)">-</button>
+                <input type="number" class="qty-input" id="inp-${i.n}" value="${basket[i.n]||0}" onchange="manualInput('${i.n}', this.value)">
+                <button class="qty-btn" onclick="updateBasket('${i.n}',1)">+</button>
+            </div>
+        </div>`).join('');
+}
+
+function updateBasket(name, val) { manualInput(name, (basket[name] || 0) + val); }
+function manualInput(name, val) {
+    let t = parseInt(val) || 0; if(t < 0) t = 0; if(lager[name] !== Infinity && t > lager[name]) t = lager[name];
+    basket[name] = t; renderPOS(document.querySelector('.btn-cat.active').innerText === "Flüge" ? "Heli" : document.querySelector('.btn-cat.active').innerText); renderBill();
+}
+
+function addBetToBill() {
+    const n = document.getElementById('bet-user').value, t = document.getElementById('bet-tel').value, a = parseInt(document.getElementById('bet-amount').value);
+    if(!n || a < 10000) return alert("MIN 10.000€");
+    manualBets.push({name:n, tel:t, amount:a}); document.getElementById('bet-user').value=""; document.getElementById('bet-tel').value=""; document.getElementById('bet-amount').value=""; renderBill();
+}
+
+function renderBill() {
+    let t = 0, h = "";
+    for(let n in basket) if(basket[n]>0) { let i = ALL_PRODUCTS.find(p=>p.n===n); t+=basket[n]*i.p; h+=`<div>${n} x${basket[n]}</div>`; }
+    manualBets.forEach(b => { t+=b.amount; h+=`<div style="color:var(--danger)">Wette: ${b.name}</div>`; });
+    document.getElementById('bill-items').innerHTML = h; document.getElementById('bill-total').innerText = t.toLocaleString()+" EUR"; return t;
+}
+
+async function checkout() {
+    const t = renderBill(); if(t === 0) return;
+    const itemsLog = [];
+    for(let n in basket) {
+        if(basket[n] > 0) {
+            itemsLog.push({n, q: basket[n], p: ALL_PRODUCTS.find(x=>x.n===n).p});
+            if(lager[n] !== Infinity) {
+                lager[n] -= basket[n];
+                if(lager[n] < 20) fetch(WH_STOCK, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({embeds:[{title:"⚠️ LAGER WARNUNG", description:`${n} fast leer: ${lager[n]}`, color:16776960}]})});
+            }
+        }
+    }
+    const idx = currentUserIndex();
+    if(!users[idx].sales) users[idx].sales = [];
+    users[idx].sales.push({ d: new Date().toISOString(), total: t, items: itemsLog });
+
+    await fetch(WH_MAIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({embeds:[{title:"BUCHUNG", description:`Mitarbeiter: ${currentUser.name}\n${document.getElementById('bill-items').innerText}\nTOTAL: ${t}€`, color:3829232}]})});
+    if(manualBets.length > 0) fetch(WH_BETS, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({embeds:[{title:"WETTE", description:manualBets.map(b=>`${b.name}: ${b.amount}€`).join("\n"), color:16711680}]})});
+    
+    basket={}; manualBets=[]; save(); renderBill(); changeTab('Getränke', document.querySelector('.btn-cat')); alert("ERFOLGREICH");
+}
+
+function toggleView() {
+    document.getElementById('dash-ui').classList.toggle('active');
+    document.getElementById('main-ui').classList.toggle('active');
+    if(document.getElementById('dash-ui').classList.contains('active')) {
+        renderManagement();
+        if(["Geschäftsinhaber", "Geschäftsführer", "Management"].includes(currentUser.role)) {
+            document.getElementById('boss-analytics').style.display = 'block';
+            updateBossCharts();
+        }
+    }
+}
+
+function updateBossCharts() {
+    const allSales = users.flatMap(u => u.sales || []);
+    const now = new Date();
+    const counts = {};
+    allSales.forEach(s => s.items.forEach(i => counts[i.n] = (counts[i.n]||0) + i.q));
+    const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+    document.getElementById('bestseller-badge').innerText = top ? `TOP: ${top[0]} (${top[1]})` : "TOP: -";
+    const days = [0,0,0,0,0,0,0], weeks = [0,0,0,0,0], months = Array(12).fill(0);
+    allSales.forEach(s => {
+        const d = new Date(s.d);
+        if(d.getFullYear() === now.getFullYear()) {
+            months[d.getMonth()] += s.total;
+            if(d.getMonth() === now.getMonth()) {
+                const kw = Math.ceil(d.getDate() / 7);
+                weeks[kw-1] += s.total;
+            }
+            const diff = now - d;
+            if(diff < 7 * 86400000) days[d.getDay()] += s.total;
+        }
+    });
+    if(chartW) chartW.destroy(); if(chartM) chartM.destroy(); if(chartY) chartY.destroy();
+    const cfg = (l, d) => ({ type:'pie', data:{ labels:l, datasets:[{data:d, backgroundColor:['#3a6df0','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4']}]}, options:{ plugins:{ legend:{display:false}}}});
+    chartW = new Chart(document.getElementById('chartWeek'), cfg(['So','Mo','Di','Mi','Do','Fr','Sa'], days));
+    chartM = new Chart(document.getElementById('chartMonth'), cfg(['KW1','KW2','KW3','KW4','KW5'], weeks));
+    chartY = new Chart(document.getElementById('chartYear'), cfg(['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'], months));
+}
+
+function renderManagement() {
+    document.getElementById('user-list').innerHTML = users.map((u, i) => `<div class="card" onclick="viewUserLogs(${i})" style="cursor:pointer"><b>${u.name}</b><br><span style="color:var(--primary);font-size:12px;">${u.role}</span></div>`).join('');
+    document.getElementById('lager-list').innerHTML = Object.keys(lager).map(n => `<div class="card" style="padding:15px;"><div style="display:flex; justify-content:space-between; align-items:center;"><small>${n}</small><b>${lager[n] === Infinity ? '∞' : lager[n]}</b><button class="btn-dark" style="padding:8px 12px; font-size:12px;" onclick="openLagerEdit('${n}')">EDIT</button></div></div>`).join('');
+}
+
+function viewUserLogs(i) {
+    selectedUserIdx = i; const u = users[i]; 
+    document.getElementById('view-u-name').innerText = u.name;
+    document.getElementById('view-u-role').innerText = u.role.toUpperCase();
+    const now = new Date();
+    let w=0, m=0, y=0, count=0;
+    (u.sales||[]).forEach(s => {
+        const d = new Date(s.d); count++;
+        if(d.getFullYear() === now.getFullYear()) {
+            y += s.total;
+            if(d.getMonth() === now.getMonth()) m += s.total;
+            if(now - d < 7 * 86400000) w += s.total;
+        }
+    });
+    document.getElementById('view-u-stats').innerHTML = `
+        <div><small>Verkäufe</small><br><b>${count}</b></div>
+        <div><small>Woche</small><br><b>${w}€</b></div>
+        <div><small>Monat</small><br><b>${m}€</b></div>
+        <div><small>Jahr</small><br><b>${y}€</b></div>
+    `;
+    let h = "<table>"; (u.logs||[]).slice().reverse().forEach(l => { let s=new Date(l.s), e=new Date(l.e); h+=`<tr><td>${s.toLocaleDateString()}</td><td style="text-align:right">${Math.floor((e-s)/60000)} Min</td></tr>`; });
+    document.getElementById('view-u-logs').innerHTML = h + "</table>"; openModal('modal-user-view');
+}
+
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); document.getElementById('unendlich-msg').style.display='none'; }
+function openLagerEdit(n) { currentEditLager = n; document.getElementById('lager-edit-title').innerText = n; openModal('modal-lager-edit'); }
+function setUnendlich() { document.getElementById('lager-edit-val').value = ""; document.getElementById('unendlich-msg').style.display = 'block'; }
+function saveLagerEdit() { const val = document.getElementById('lager-edit-val').value; lager[currentEditLager] = document.getElementById('unendlich-msg').style.display === 'block' ? Infinity : parseInt(val); save(); closeModals(); renderManagement(); }
+function saveNewUser() { const n = document.getElementById('new-u-name').value, p = document.getElementById('new-u-pass').value, r = document.getElementById('new-u-role').value, c = document.getElementById('new-u-chauffeur').checked; if(!n || !p) return; users.push({name:n, pass:p, role:r, chauffeur:c, logs:[], sales:[]}); save(); closeModals(); renderManagement(); }
+function toggleUserMenu() { const m = document.getElementById('user-menu'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
+function editUserField(f) { const n = prompt("Neuer Wert:"); if(n) { users[selectedUserIdx][f==='name'?'name':'pass']=n; save(); renderManagement(); closeModals(); } }
+function deleteCurrentUser() { if(users[selectedUserIdx].name==='LUX_STAFF')return; if(confirm("Löschen?")) { users.splice(selectedUserIdx,1); save(); renderManagement(); closeModals(); } }
+function toggleStempel() {
+    const btn = document.getElementById('stempel-btn');
+    if(btn.innerText === "Kommen") { activeShiftStart = new Date(); btn.innerText = "Gehen"; btn.className = "btn-red"; document.getElementById('live-stempel').style.display = "block"; }
+    else { const idx = currentUserIndex(); if(!users[idx].logs) users[idx].logs = []; users[idx].logs.push({ s: activeShiftStart.toISOString(), e: new Date().toISOString() }); save(); btn.innerText = "Kommen"; btn.className = "btn-blue"; document.getElementById('live-stempel').style.display = "none"; activeShiftStart = null; }
+}
+
+setInterval(() => {
+    document.getElementById('time-display').innerText = new Date().toLocaleTimeString('de-DE');
+    if(activeShiftStart) {
+        let d = Math.floor((new Date()-activeShiftStart)/1000);
+        let h = Math.floor(d/3600), m = Math.floor((d%3600)/60), s = d%60;
+        document.getElementById('live-stempel').innerText = `• SHIFT ACTIVE (${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')})`;
+    }
+}, 1000);
+
+// AUTO-SYNC
+load();
+setInterval(load, 10000);
+</script>
+</body>
+</html>
