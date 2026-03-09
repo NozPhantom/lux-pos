@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>THE LUX - ELITE POS v17 CLOUD</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
     --primary: #3a6df0; --primary-glow: rgba(58, 109, 240, 0.4);
@@ -13,320 +12,130 @@
 }
 body { 
     font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px;
-    background-image: radial-gradient(circle at top right, #161e31, transparent), radial-gradient(circle at bottom left, #0a0a0c, transparent);
+    background-image: radial-gradient(circle at top right, #161e31, transparent);
     background-attachment: fixed; min-height: 100vh;
 }
-#header-info { position: fixed; top: 20px; left: 20px; z-index: 1000; background: var(--card); padding: 18px 25px; border-radius: 22px; border: 1px solid var(--border); backdrop-filter: blur(15px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+#header-info { position: fixed; top: 20px; left: 20px; z-index: 1000; background: var(--card); padding: 18px 25px; border-radius: 22px; border: 1px solid var(--border); backdrop-filter: blur(15px); }
 #nav-right { position: fixed; top: 20px; right: 20px; display: none; gap: 12px; z-index: 1000; }
-.section { display: none; margin-top: 140px; max-width: 1300px; margin-left: auto; margin-right: auto; animation: fadeIn 0.4s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.section { display: none; margin-top: 140px; max-width: 1300px; margin-left: auto; margin-right: auto; }
 .active { display: block !important; }
-.cat-nav { display: flex; gap: 12px; margin-bottom: 35px; overflow-x: auto; padding-bottom: 15px; scrollbar-width: none; }
-.cat-nav::-webkit-scrollbar { display: none; }
-.btn-cat { background: var(--card); color: var(--text-dim); border: 1px solid var(--border); padding: 14px 28px; border-radius: 16px; cursor: pointer; font-weight: 600; transition: all 0.3s; white-space: nowrap; backdrop-filter: blur(10px); }
-.btn-cat.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 0 20px var(--primary-glow); transform: scale(1.05); }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-.card { background: var(--card); padding: 25px; border-radius: 24px; border: 1px solid var(--border); backdrop-filter: blur(10px); transition: all 0.3s ease; position: relative; overflow: hidden; }
-.card:hover { border-color: var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-.qty-ctrl { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); border-radius: 16px; margin-top: 20px; height: 55px; border: 1px solid var(--border); }
-.qty-btn { width: 60px; height: 100%; background: transparent; color: white; border: none; font-size: 24px; cursor: pointer; }
-.qty-input { width: 70px; background: transparent; border: none; color: white; text-align: center; font-weight: 800; font-size: 20px; outline: none; }
-button { padding: 14px 24px; border-radius: 16px; border: none; cursor: pointer; font-weight: 700; transition: all 0.3s; }
-.btn-blue { background: var(--primary); color: white; box-shadow: 0 4px 15px var(--primary-glow); }
+.card { background: var(--card); padding: 25px; border-radius: 24px; border: 1px solid var(--border); backdrop-filter: blur(10px); text-align: center; }
+button { padding: 14px 24px; border-radius: 16px; border: none; cursor: pointer; font-weight: 700; transition: 0.3s; }
+.btn-blue { background: var(--primary); color: white; width: 100%; margin-top: 10px; }
 .btn-red { background: var(--danger); color: white; }
 .btn-dark { background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border); }
-input, select { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 15px; border-radius: 14px; width: 100%; margin-bottom: 12px; font-family: inherit; }
-#bill-area { margin-top: 50px; background: linear-gradient(145deg, rgba(58,109,240,0.1), rgba(0,0,0,0.2)); padding: 35px; border-radius: 32px; border: 1px solid var(--primary); }
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(10px); }
-.modal-content { background: #111116; padding: 40px; border-radius: 32px; border: 1px solid var(--border); width: 95%; max-width: 900px; position: relative; max-height: 90vh; overflow-y: auto; }
-.menu-dots { position: absolute; top: 25px; right: 25px; font-size: 28px; cursor: pointer; color: var(--text-dim); }
-.dropdown-menu { position: absolute; top: 65px; right: 25px; background: #1a1a21; border: 1px solid var(--border); border-radius: 14px; display: none; z-index: 10001; }
-.dropdown-menu div { padding: 12px 25px; cursor: pointer; font-size: 14px; border-bottom: 1px solid var(--border); }
-.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px; }
-.chart-container { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
-canvas { max-width: 100%; height: auto !important; }
+input { background: rgba(0,0,0,0.2); border: 1px solid var(--border); color: white; padding: 15px; border-radius: 14px; width: 100%; margin-bottom: 12px; box-sizing: border-box; }
+#bill-area { margin-top: 50px; background: rgba(58,109,240,0.1); padding: 35px; border-radius: 32px; border: 1px solid var(--primary); }
 </style>
 </head>
 <body>
 
 <div id="header-info">
     <div id="time-display" style="font-size: 22px; font-weight: 800;">00:00:00</div>
-    <div id="cloud-status" style="font-size: 10px; color: var(--primary); margin-top: 5px;">VERBINDUNG...</div>
-    <div id="live-stempel" style="display:none; color:var(--success); font-size: 13px; font-weight: 600; margin-top: 4px;">• SHIFT ACTIVE</div>
+    <div id="cloud-status" style="font-size: 10px; color: var(--primary);">VERBINDUNG...</div>
 </div>
 
 <div id="nav-right">
-    <button id="stempel-btn" class="btn-blue" onclick="toggleStempel()">Kommen</button>
-    <button class="btn-dark" onclick="viewUserLogs(currentUserIndex())">Meine Zeiten</button>
-    <button id="dash-btn" class="btn-dark" onclick="toggleView()" style="display:none;">Management</button>
-    <button class="btn-red" onclick="location.reload()">✕</button>
+    <button class="btn-dark" onclick="location.reload()">Abmelden / Refresh</button>
 </div>
 
 <div id="login-overlay" style="position:fixed; inset:0; background:var(--bg); z-index:9999; display:flex; align-items:center; justify-content:center;">
-    <div style="background: var(--card); padding: 50px; border-radius: 40px; width: 400px; text-align: center; border: 1px solid var(--border); backdrop-filter: blur(20px);">
-        <div style="font-size: 12px; letter-spacing: 5px; color: var(--primary); margin-bottom: 10px; font-weight: 800;">EST. 2026</div>
-        <h1 style="font-size: 42px; margin: 0 0 30px 0; letter-spacing: -2px; font-weight: 800;">THE LUX</h1>
-        <input type="text" id="logU" placeholder="Username">
-        <input type="password" id="logP" placeholder="Password">
-        <button class="btn-blue" style="width:100%; margin-top: 10px; padding: 18px;" onclick="login()">ZUGRIFF BESTÄTIGEN</button>
+    <div style="background: var(--card); padding: 50px; border-radius: 40px; width: 350px; text-align: center; border: 1px solid var(--border);">
+        <h1 style="margin-top:0;">THE LUX</h1>
+        <input type="text" id="logU" placeholder="Nutzername">
+        <input type="password" id="logP" placeholder="Passwort">
+        <button class="btn-blue" onclick="login()">LOGIN</button>
     </div>
 </div>
 
 <div id="main-ui" class="section">
-    <div class="cat-nav" id="cat-nav-bar">
-        <button class="btn-cat active" onclick="changeTab('Getränke', this)">Getränke</button>
-        <button class="btn-cat" onclick="changeTab('Snacks', this)">Snacks</button>
-        <button class="btn-cat" onclick="changeTab('Fahrten', this)">Fahrten</button>
-        <button class="btn-cat" onclick="changeTab('Heli', this)">Flüge</button>
-        <button class="btn-cat" onclick="changeTab('Fightclub', this)">Fightclub</button>
-        <button class="btn-cat" onclick="changeTab('Wetten', this)">Wetten</button>
-    </div>
     <div class="grid" id="grid-pos"></div>
-    <div id="bet-form" style="display:none; background: var(--card); padding: 40px; border-radius: 32px; border: 1px solid var(--border);">
-        <h2 style="margin-top:0">Wette platzieren</h2>
-        <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
-            <input type="text" id="bet-user" placeholder="Name">
-            <input type="text" id="bet-tel" placeholder="Tel">
-            <input type="number" id="bet-amount" placeholder="Einsatz">
-        </div>
-        <button class="btn-blue" style="width:100%; margin-top:20px; padding: 18px;" onclick="addBetToBill()">WETTE HINZUFÜGEN</button>
-    </div>
     <div id="bill-area">
-        <div id="bill-items" style="margin-bottom:25px; font-size: 16px; color: var(--text-dim);"></div>
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px solid var(--border); padding-top: 25px;">
-            <span style="color: var(--text-dim);">Gesamtbetrag</span>
-            <span id="bill-total" style="font-size: 38px; font-weight: 800; color: var(--primary);">0 EUR</span>
-        </div>
-        <button class="btn-blue" style="width:100%; margin-top:30px; font-size:20px; padding: 25px;" onclick="checkout()">QUITTUNG ABSCHLIESSEN & SENDEN</button>
+        <div id="bill-items" style="margin-bottom:15px;"></div>
+        <div style="font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom:20px;">Total: <span id="bill-total">0</span> EUR</div>
+        <button class="btn-blue" style="padding:20px; font-size:18px;" onclick="checkout()">RECHNUNG ABSCHLIESSEN</button>
     </div>
 </div>
-
-<div id="dash-ui" class="section">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
-        <h1 style="margin:0; font-size:32px;">Management Dashboard</h1>
-        <button class="btn-blue" onclick="openModal('modal-new-user')">+ Mitarbeiter</button>
-    </div>
-    <div id="boss-analytics" style="display:none; margin-bottom:50px;">
-        <div style="background: var(--card); padding:30px; border-radius:32px; border:1px solid var(--primary);">
-            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h2 style="margin:0">Umsatzanalyse</h2>
-                <div id="bestseller-badge" style="background:var(--primary); padding:8px 15px; border-radius:10px; font-size:12px; font-weight:800;">TOP: -</div>
-            </div>
-            <div class="stats-grid">
-                <div class="chart-container"><h3>Woche</h3><canvas id="chartWeek"></canvas></div>
-                <div class="chart-container"><h3>Monat</h3><canvas id="chartMonth"></canvas></div>
-                <div class="chart-container"><h3>Jahr</h3><canvas id="chartYear"></canvas></div>
-            </div>
-        </div>
-    </div>
-    <div id="user-list" class="grid"></div>
-    <h2 style="margin-top:60px; margin-bottom:20px;">Lagerverwaltung</h2>
-    <div id="lager-list" class="grid"></div>
-</div>
-
-<div id="modal-new-user" class="modal"><div class="modal-content"><h3>Neuer Zugang</h3><input type="text" id="new-u-name" placeholder="Name"><input type="password" id="new-u-pass" placeholder="Passwort"><select id="new-u-role"><option>Geschäftsinhaber</option><option>Geschäftsführer</option><option>Management</option><option>Bartender</option><option>Kellner</option><option>Security</option><option>Reception</option></select><label style="display:flex; align-items:center; gap:10px; margin: 15px 0; color: var(--text-dim);"><input type="checkbox" id="new-u-chauffeur" style="width:auto; margin:0;"> Zweitrolle Chauffeur</label><div style="display:flex; gap:12px; margin-top:30px;"><button class="btn-blue" style="flex:2" onclick="saveNewUser()">SPEICHERN</button><button class="btn-dark" style="flex:1" onclick="closeModals()">ABBRUCH</button></div></div></div>
-<div id="modal-lager-edit" class="modal"><div class="modal-content"><h3 id="lager-edit-title">Bestand</h3><input type="number" id="lager-edit-val" placeholder="Stückzahl"><button class="btn-dark" style="width:100%; margin-bottom:12px;" onclick="setUnendlich()">VARIABLE UNENDLICH</button><div id="unendlich-msg" style="color:var(--success); font-size:13px; text-align:center; display:none;">✓ UNENDLICH MODUS</div><button class="btn-blue" style="width:100%" onclick="saveLagerEdit()">BESTÄTIGEN</button></div></div>
-<div id="modal-user-view" class="modal"><div class="modal-content"><div class="menu-dots" onclick="toggleUserMenu()">⋮</div><div id="user-menu" class="dropdown-menu"><div onclick="editUserField('name')">Name Ändern</div><div onclick="editUserField('pass')">Passwort Ändern</div><div onclick="deleteCurrentUser()" style="color:var(--danger)">Löschen</div></div><h2 id="view-u-name" style="margin-bottom:5px;">Name</h2><p id="view-u-role" style="color:var(--primary); font-weight:700; margin-top:0;"></p><div id="view-u-stats" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:20px; padding:15px; background:rgba(0,0,0,0.2); border-radius:15px;"></div><div id="view-u-logs" style="max-height:250px; overflow-y:auto; margin-top:25px; border-top:1px solid var(--border);"></div><button class="btn-dark" style="width:100%; margin-top:30px;" onclick="closeModals()">ZURÜCK</button></div></div>
 
 <script>
-// CLOUD SETTINGS
-const CLOUD_DB = "https://kvdb.io/An9Yp6v3n8S7S8S8S8S8S8/the_lux_v17_global_final";
-const WH_MAIN = "https://discord.com/api/webhooks/1480511718445547564/eF7F71sEzjAeEuisEI8C59wX9yzhiw8ClXaGHG45Vo7ZLuZgNXftx0tUpgG-w6ISe2pe";
-const WH_BETS = "https://discord.com/api/webhooks/1480522708092588064/zdVPCFNZL7SEv9taen6e4zqFYZca32uHVTWC6HDMBisTkG8dQfi5YwFjtaOsYrv8fRkH";
-const WH_STOCK = "https://discord.com/api/webhooks/1480549073256710214/nXBqxQMs8fo5PLo_sVyH7STy2tUqOauxdRCXek0gd1lmBDCtb0Qw0WsguY_J1WCs7ecj";
+// --- SCHRITT 2: FIREBASE URL ---
+const CLOUD_DB = "https://the-lux-system-default-rtdb.firebaseio.com/data.json";
 
-const ALL_PRODUCTS = [
-    {n:"Tequila", p:500, c:"Getränke"}, {n:"Whiskey", p:300, c:"Getränke"}, {n:"Wein", p:200, c:"Getränke"},
-    {n:"Champagner", p:250, c:"Getränke"}, {n:"Gin", p:200, c:"Getränke"}, {n:"Cognac", p:300, c:"Getränke"},
-    {n:"Cocktail", p:200, c:"Getränke"}, {n:"Martini", p:200, c:"Getränke"}, {n:"Cola", p:100, c:"Getränke"},
-    {n:"Energy", p:100, c:"Getränke"}, {n:"Wasser", p:100, c:"Getränke"},
-    {n:"Pommes", p:150, c:"Snacks"}, {n:"Erdnüsse", p:100, c:"Snacks"},
-    {n:"Grundgebühr Fahrt", p:10000, c:"Fahrten"}, {n:"Kilometer Fahrt", p:200, c:"Fahrten"},
-    {n:"Grundgebühr Heli", p:20000, c:"Heli"}, {n:"Kilometer Heli", p:500, c:"Heli"},
-    {n:"Event Eintritt", p:5000, c:"Fightclub"}, {n:"Miete Grundgebühr 1H", p:50000, c:"Fightclub"}, {n:"+30 Minuten", p:30000, c:"Fightclub"}
+let users = [{name:"LUX_STAFF", pass:"Staff3221", sales:[]}];
+let basket = {}, currentUser = null;
+
+const PRODUCTS = [
+    {n:"Tequila", p:500}, {n:"Whiskey", p:300}, {n:"Wein", p:200},
+    {n:"Cola", p:100}, {n:"Heli-Flug", p:20000}
 ];
 
-let users = [{name:"LUX_STAFF", pass:"Staff3221", role:"Geschäftsinhaber", logs:[], sales:[]}];
-let lager = {};
-let basket = {}, manualBets = [], currentUser = null, activeShiftStart = null, currentEditLager = null, selectedUserIdx = null;
-let chartW, chartM, chartY;
-
-// CLOUD FUNCTIONS
+// Speichern in Firebase
 async function save() {
     document.getElementById('cloud-status').innerText = "SPEICHERE...";
-    await fetch(CLOUD_DB, { method: 'POST', body: JSON.stringify({ users, lager }) });
+    await fetch(CLOUD_DB, { 
+        method: 'PUT', 
+        body: JSON.stringify({ users }) 
+    });
     document.getElementById('cloud-status').innerText = "CLOUD AKTIV";
 }
 
+// Laden von Firebase
 async function load() {
     try {
         const r = await fetch(CLOUD_DB);
         const d = await r.json();
-        if(d.users) users = d.users;
-        if(d.lager) lager = d.lager;
+        if(d && d.users) users = d.users;
         document.getElementById('cloud-status').innerText = "CLOUD AKTIV";
-    } catch(e) { save(); }
+    } catch(e) { console.log("Cloud leer."); }
 }
-
-function currentUserIndex() { return users.findIndex(u => u.name === currentUser.name); }
 
 function login() {
     const u = document.getElementById('logU').value, p = document.getElementById('logP').value;
     const f = users.find(x => x.name === u && x.pass === p);
     if(f) {
-        currentUser = f; document.getElementById('login-overlay').style.display = 'none';
+        currentUser = f;
+        document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('nav-right').style.display = 'flex';
         document.getElementById('main-ui').classList.add('active');
-        if(["Geschäftsinhaber", "Geschäftsführer", "Management"].includes(f.role)) document.getElementById('dash-btn').style.display = 'block';
-        ALL_PRODUCTS.forEach(i => { if(lager[i.n] === undefined) lager[i.n] = 999; });
-        changeTab('Getränke', document.querySelector('.btn-cat'));
-    } else alert("CODE FALSCH");
+        renderPOS();
+    } else { alert("Falsche Daten!"); }
 }
 
-function changeTab(cat, btn) {
-    document.querySelectorAll('.btn-cat').forEach(b => b.classList.remove('active')); btn.classList.add('active');
-    if(cat === "Wetten") { document.getElementById('grid-pos').style.display='none'; document.getElementById('bet-form').style.display='block'; }
-    else { document.getElementById('grid-pos').style.display='grid'; document.getElementById('bet-form').style.display='none'; renderPOS(cat === "Flüge" ? "Heli" : cat); }
-}
-
-function renderPOS(cat) {
-    document.getElementById('grid-pos').innerHTML = ALL_PRODUCTS.filter(i => i.c === cat).map(i => `
+function renderPOS() {
+    document.getElementById('grid-pos').innerHTML = PRODUCTS.map(i => `
         <div class="card">
-            <div style="display:flex; justify-content:space-between"><b>${i.n}</b><span style="color:var(--primary)">${i.p}€</span></div>
-            <div style="font-size:12px; color:var(--text-dim); margin-top:8px;">Lager: ${lager[i.n] === Infinity ? '∞' : lager[i.n]}</div>
-            <div class="qty-ctrl">
-                <button class="qty-btn" onclick="updateBasket('${i.n}',-1)">-</button>
-                <input type="number" class="qty-input" id="inp-${i.n}" value="${basket[i.n]||0}" onchange="manualInput('${i.n}', this.value)">
-                <button class="qty-btn" onclick="updateBasket('${i.n}',1)">+</button>
-            </div>
+            <b style="font-size:18px;">${i.n}</b><br>${i.p}€
+            <button class="btn-blue" onclick="add('${i.n}')">Hinzufügen</button>
         </div>`).join('');
 }
 
-function updateBasket(name, val) { manualInput(name, (basket[name] || 0) + val); }
-function manualInput(name, val) {
-    let t = parseInt(val) || 0; if(t < 0) t = 0; if(lager[name] !== Infinity && t > lager[name]) t = lager[name];
-    basket[name] = t; renderPOS(document.querySelector('.btn-cat.active').innerText === "Flüge" ? "Heli" : document.querySelector('.btn-cat.active').innerText); renderBill();
-}
-
-function addBetToBill() {
-    const n = document.getElementById('bet-user').value, t = document.getElementById('bet-tel').value, a = parseInt(document.getElementById('bet-amount').value);
-    if(!n || a < 10000) return alert("MIN 10.000€");
-    manualBets.push({name:n, tel:t, amount:a}); document.getElementById('bet-user').value=""; document.getElementById('bet-tel').value=""; document.getElementById('bet-amount').value=""; renderBill();
-}
+function add(n) { basket[n] = (basket[n]||0)+1; renderBill(); }
 
 function renderBill() {
-    let t = 0, h = "";
-    for(let n in basket) if(basket[n]>0) { let i = ALL_PRODUCTS.find(p=>p.n===n); t+=basket[n]*i.p; h+=`<div>${n} x${basket[n]}</div>`; }
-    manualBets.forEach(b => { t+=b.amount; h+=`<div style="color:var(--danger)">Wette: ${b.name}</div>`; });
-    document.getElementById('bill-items').innerHTML = h; document.getElementById('bill-total').innerText = t.toLocaleString()+" EUR"; return t;
+    let t = 0; let h = "";
+    for(let n in basket) {
+        let i = PRODUCTS.find(p=>p.n===n);
+        t += basket[n]*i.p;
+        h += `<div>${n} x${basket[n]} (${basket[n]*i.p}€)</div>`;
+    }
+    document.getElementById('bill-items').innerHTML = h;
+    document.getElementById('bill-total').innerText = t;
 }
 
 async function checkout() {
-    const t = renderBill(); if(t === 0) return;
-    const itemsLog = [];
-    for(let n in basket) {
-        if(basket[n] > 0) {
-            itemsLog.push({n, q: basket[n], p: ALL_PRODUCTS.find(x=>x.n===n).p});
-            if(lager[n] !== Infinity) { lager[n] -= basket[n]; }
-        }
-    }
-    const idx = currentUserIndex();
+    if(Object.keys(basket).length === 0) return;
+    const idx = users.findIndex(u => u.name === currentUser.name);
     if(!users[idx].sales) users[idx].sales = [];
-    users[idx].sales.push({ d: new Date().toISOString(), total: t, items: itemsLog });
-
-    await fetch(WH_MAIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({embeds:[{title:"BUCHUNG", description:`Mitarbeiter: ${currentUser.name}\n${document.getElementById('bill-items').innerText}\nTOTAL: ${t}€`, color:3829232}]})});
-    
-    basket={}; manualBets=[]; await save(); renderBill(); changeTab('Getränke', document.querySelector('.btn-cat')); alert("ERFOLGREICH");
+    users[idx].sales.push({ date: new Date().toLocaleString(), items: basket });
+    basket = {}; renderBill();
+    await save();
+    alert("Rechnung gespeichert!");
 }
 
-function toggleView() {
-    document.getElementById('dash-ui').classList.toggle('active');
-    document.getElementById('main-ui').classList.toggle('active');
-    if(document.getElementById('dash-ui').classList.contains('active')) {
-        renderManagement();
-        if(["Geschäftsinhaber", "Geschäftsführer", "Management"].includes(currentUser.role)) {
-            document.getElementById('boss-analytics').style.display = 'block';
-            updateBossCharts();
-        }
-    }
-}
-
-function updateBossCharts() {
-    const allSales = users.flatMap(u => u.sales || []);
-    const now = new Date();
-    const counts = {};
-    allSales.forEach(s => s.items.forEach(i => counts[i.n] = (counts[i.n]||0) + i.q));
-    const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
-    document.getElementById('bestseller-badge').innerText = top ? `TOP: ${top[0]} (${top[1]})` : "TOP: -";
-
-    const days = [0,0,0,0,0,0,0], weeks = [0,0,0,0,0], months = Array(12).fill(0);
-    allSales.forEach(s => {
-        const d = new Date(s.d);
-        if(d.getFullYear() === now.getFullYear()) {
-            months[d.getMonth()] += s.total;
-            if(d.getMonth() === now.getMonth()) weeks[Math.ceil(d.getDate() / 7)-1] += s.total;
-            if(now - d < 7 * 86400000) days[d.getDay()] += s.total;
-        }
-    });
-
-    if(chartW) chartW.destroy(); if(chartM) chartM.destroy(); if(chartY) chartY.destroy();
-    const cfg = (l, d) => ({ type:'pie', data:{ labels:l, datasets:[{data:d, backgroundColor:['#3a6df0','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4']}]}, options:{ plugins:{ legend:{display:false}}}});
-    chartW = new Chart(document.getElementById('chartWeek'), cfg(['So','Mo','Di','Mi','Do','Fr','Sa'], days));
-    chartM = new Chart(document.getElementById('chartMonth'), cfg(['KW1','KW2','KW3','KW4','KW5'], weeks));
-    chartY = new Chart(document.getElementById('chartYear'), cfg(['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'], months));
-}
-
-function renderManagement() {
-    document.getElementById('user-list').innerHTML = users.map((u, i) => `<div class="card" onclick="viewUserLogs(${i})" style="cursor:pointer"><b>${u.name}</b><br><span style="color:var(--primary);font-size:12px;">${u.role}</span></div>`).join('');
-    document.getElementById('lager-list').innerHTML = Object.keys(lager).map(n => `<div class="card" style="padding:15px;"><div style="display:flex; justify-content:space-between; align-items:center;"><small>${n}</small><b>${lager[n] === Infinity ? '∞' : lager[n]}</b><button class="btn-dark" style="padding:8px 12px; font-size:12px;" onclick="openLagerEdit('${n}')">EDIT</button></div></div>`).join('');
-}
-
-function viewUserLogs(i) {
-    selectedUserIdx = i; const u = users[i]; 
-    document.getElementById('view-u-name').innerText = u.name;
-    document.getElementById('view-u-role').innerText = u.role.toUpperCase();
-    const now = new Date();
-    let w=0, m=0, y=0, count=0;
-    (u.sales||[]).forEach(s => {
-        const d = new Date(s.d); count++;
-        if(d.getFullYear() === now.getFullYear()) {
-            y += s.total;
-            if(d.getMonth() === now.getMonth()) m += s.total;
-            if(now - d < 7 * 86400000) w += s.total;
-        }
-    });
-    document.getElementById('view-u-stats').innerHTML = `<div><small>Verkäufe</small><br><b>${count}</b></div><div><small>Woche</small><br><b>${w}€</b></div><div><small>Monat</small><br><b>${m}€</b></div><div><small>Jahr</small><br><b>${y}€</b></div>`;
-    let h = "<table>"; (u.logs||[]).slice().reverse().forEach(l => { let s=new Date(l.s), e=new Date(l.e); h+=`<tr><td>${s.toLocaleDateString()}</td><td style="text-align:right">${Math.floor((e-s)/60000)} Min</td></tr>`; });
-    document.getElementById('view-u-logs').innerHTML = h + "</table>"; openModal('modal-user-view');
-}
-
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); document.getElementById('unendlich-msg').style.display='none'; }
-function openLagerEdit(n) { currentEditLager = n; document.getElementById('lager-edit-title').innerText = n; openModal('modal-lager-edit'); }
-function setUnendlich() { document.getElementById('lager-edit-val').value = ""; document.getElementById('unendlich-msg').style.display = 'block'; }
-async function saveLagerEdit() { const val = document.getElementById('lager-edit-val').value; lager[currentEditLager] = document.getElementById('unendlich-msg').style.display === 'block' ? Infinity : parseInt(val); await save(); closeModals(); renderManagement(); }
-async function saveNewUser() { const n = document.getElementById('new-u-name').value, p = document.getElementById('new-u-pass').value, r = document.getElementById('new-u-role').value, c = document.getElementById('new-u-chauffeur').checked; if(!n || !p) return; users.push({name:n, pass:p, role:r, chauffeur:c, logs:[], sales:[]}); await save(); closeModals(); renderManagement(); }
-function toggleUserMenu() { const m = document.getElementById('user-menu'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
-async function editUserField(f) { const n = prompt("Neuer Wert:"); if(n) { users[selectedUserIdx][f==='name'?'name':'pass']=n; await save(); renderManagement(); closeModals(); } }
-async function deleteCurrentUser() { if(users[selectedUserIdx].name==='LUX_STAFF')return; if(confirm("Löschen?")) { users.splice(selectedUserIdx,1); await save(); renderManagement(); closeModals(); } }
-async function toggleStempel() {
-    const btn = document.getElementById('stempel-btn');
-    if(btn.innerText === "Kommen") { activeShiftStart = new Date(); btn.innerText = "Gehen"; btn.className = "btn-red"; document.getElementById('live-stempel').style.display = "block"; }
-    else { const idx = currentUserIndex(); if(!users[idx].logs) users[idx].logs = []; users[idx].logs.push({ s: activeShiftStart.toISOString(), e: new Date().toISOString() }); await save(); btn.innerText = "Kommen"; btn.className = "btn-blue"; document.getElementById('live-stempel').style.display = "none"; activeShiftStart = null; }
-}
-
-setInterval(() => {
-    document.getElementById('time-display').innerText = new Date().toLocaleTimeString('de-DE');
-    if(activeShiftStart) {
-        let d = Math.floor((new Date()-activeShiftStart)/1000);
-        let h = Math.floor(d/3600), m = Math.floor((d%3600)/60), s = d%60;
-        document.getElementById('live-stempel').innerText = `• SHIFT ACTIVE (${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')})`;
-    }
-}, 1000);
-
-// START UP
+setInterval(load, 10000); // Alle 10 Sek. Daten holen
 load();
-setInterval(load, 30000); // Alle 30 Sek Auto-Sync
+setInterval(() => { document.getElementById('time-display').innerText = new Date().toLocaleTimeString(); }, 1000);
 </script>
 </body>
 </html>
