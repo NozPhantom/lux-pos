@@ -132,7 +132,7 @@ canvas { max-width: 100%; height: auto !important; }
 <div id="view-u-logs" style="max-height:250px; overflow-y:auto; margin-top:25px; border-top:1px solid var(--border);"></div><button class="btn-dark" style="width:100%; margin-top:30px;" onclick="closeModals()">ZURÜCK</button></div></div>
 
 <script>
-// CLOUD LINK
+// CLOUD KONFIG (Habe deine URL genommen)
 const CLOUD_DB = "https://the-lux-system-default-rtdb.firebaseio.com/data.json";
 
 const WH_MAIN = "https://discord.com/api/webhooks/1480511718445547564/eF7F71sEzjAeEuisEI8C59wX9yzhiw8ClXaGHG45Vo7ZLuZgNXftx0tUpgG-w6ISe2pe";
@@ -150,25 +150,23 @@ const ALL_PRODUCTS = [
     {n:"Event Eintritt", p:5000, c:"Fightclub"}, {n:"Miete Grundgebühr 1H", p:50000, c:"Fightclub"}, {n:"+30 Minuten", p:30000, c:"Fightclub"}
 ];
 
+// START-DATEN (Falls Cloud noch leer ist)
 let users = [{name:"LUX_STAFF", pass:"Staff3221", role:"Geschäftsinhaber", logs:[], sales:[]}];
 let lager = {};
 let basket = {}, manualBets = [], currentUser = null, activeShiftStart = null, currentEditLager = null, selectedUserIdx = null;
 let chartW, chartM, chartY;
 
-// CLOUD SAVE FUNKTION
 async function save() { 
-    localStorage.setItem('lux_u_v17', JSON.stringify(users)); 
-    localStorage.setItem('lux_l_v17', JSON.stringify(lager));
     await fetch(CLOUD_DB, { method: 'PUT', body: JSON.stringify({ users, lager }) });
 }
 
-// CLOUD LOAD FUNKTION
 async function load() {
     try {
         const r = await fetch(CLOUD_DB);
         const d = await r.json();
-        if(d) { users = d.users || users; lager = d.lager || lager; }
-    } catch(e) {}
+        if(d && d.users) users = d.users; // Nur wenn User in der Cloud sind, nimm sie
+        if(d && d.lager) lager = d.lager;
+    } catch(e) { console.error("Load failed"); }
 }
 
 function currentUserIndex() { return users.findIndex(u => u.name === currentUser.name); }
@@ -243,7 +241,7 @@ async function checkout() {
     await fetch(WH_MAIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({embeds:[{title:"BUCHUNG", description:`Mitarbeiter: ${currentUser.name}\n${document.getElementById('bill-items').innerText}\nTOTAL: ${t}€`, color:3829232}]})});
     if(manualBets.length > 0) fetch(WH_BETS, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({embeds:[{title:"WETTE", description:manualBets.map(b=>`${b.name}: ${b.amount}€`).join("\n"), color:16711680}]})});
     
-    basket={}; manualBets=[]; save(); renderBill(); changeTab('Getränke', document.querySelector('.btn-cat')); alert("ERFOLGREICH");
+    basket={}; manualBets=[]; await save(); renderBill(); changeTab('Getränke', document.querySelector('.btn-cat')); alert("ERFOLGREICH");
 }
 
 function toggleView() {
@@ -318,11 +316,11 @@ function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); document.getElementById('unendlich-msg').style.display='none'; }
 function openLagerEdit(n) { currentEditLager = n; document.getElementById('lager-edit-title').innerText = n; openModal('modal-lager-edit'); }
 function setUnendlich() { document.getElementById('lager-edit-val').value = ""; document.getElementById('unendlich-msg').style.display = 'block'; }
-function saveLagerEdit() { const val = document.getElementById('lager-edit-val').value; lager[currentEditLager] = document.getElementById('unendlich-msg').style.display === 'block' ? Infinity : parseInt(val); save(); closeModals(); renderManagement(); }
-function saveNewUser() { const n = document.getElementById('new-u-name').value, p = document.getElementById('new-u-pass').value, r = document.getElementById('new-u-role').value, c = document.getElementById('new-u-chauffeur').checked; if(!n || !p) return; users.push({name:n, pass:p, role:r, chauffeur:c, logs:[], sales:[]}); save(); closeModals(); renderManagement(); }
+async function saveLagerEdit() { const val = document.getElementById('lager-edit-val').value; lager[currentEditLager] = document.getElementById('unendlich-msg').style.display === 'block' ? Infinity : parseInt(val); await save(); closeModals(); renderManagement(); }
+async function saveNewUser() { const n = document.getElementById('new-u-name').value, p = document.getElementById('new-u-pass').value, r = document.getElementById('new-u-role').value, c = document.getElementById('new-u-chauffeur').checked; if(!n || !p) return; users.push({name:n, pass:p, role:r, chauffeur:c, logs:[], sales:[]}); await save(); closeModals(); renderManagement(); }
 function toggleUserMenu() { const m = document.getElementById('user-menu'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
-function editUserField(f) { const n = prompt("Neuer Wert:"); if(n) { users[selectedUserIdx][f==='name'?'name':'pass']=n; save(); renderManagement(); closeModals(); } }
-function deleteCurrentUser() { if(users[selectedUserIdx].name==='LUX_STAFF')return; if(confirm("Löschen?")) { users.splice(selectedUserIdx,1); save(); renderManagement(); closeModals(); } }
+async function editUserField(f) { const n = prompt("Neuer Wert:"); if(n) { users[selectedUserIdx][f==='name'?'name':'pass']=n; await save(); renderManagement(); closeModals(); } }
+async function deleteCurrentUser() { if(users[selectedUserIdx].name==='LUX_STAFF')return; if(confirm("Löschen?")) { users.splice(selectedUserIdx,1); await save(); renderManagement(); closeModals(); } }
 function toggleStempel() {
     const btn = document.getElementById('stempel-btn');
     if(btn.innerText === "Kommen") { activeShiftStart = new Date(); btn.innerText = "Gehen"; btn.className = "btn-red"; document.getElementById('live-stempel').style.display = "block"; }
@@ -338,9 +336,9 @@ setInterval(() => {
     }
 }, 1000);
 
-// AUTO-SYNC
+// INITIAL LOAD
 load();
-setInterval(load, 10000);
+setInterval(load, 15000);
 </script>
 </body>
 </html>
