@@ -19,14 +19,13 @@
     --accent-gradient: linear-gradient(135deg, #3a6df0 0%, #a855f7 100%);
 }
 
-/* --- ANIMIERTER HINTERGRUND CANVA --- */
 #plexus-bg {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1; /* Hinter allem Inhalt */
+    z-index: -1;
 }
 
 body { 
@@ -40,7 +39,6 @@ body {
     min-height: 100vh;
 }
 
-/* --- UI COMPONENTS (UNVERÄNDERT) --- */
 #header-info { 
     position: fixed; top: 20px; left: 20px; z-index: 1000; 
     background: rgba(255, 255, 255, 0.03); 
@@ -117,13 +115,12 @@ button {
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(15px); }
 .modal-content { background: #0a0a0e; padding: 50px; border-radius: 40px; border: 1px solid var(--border); width: 95%; max-width: 600px; box-shadow: 0 0 100px rgba(58,109,240,0.1); }
 
-/* --- LOGIN OVERLAY --- */
 #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
 
 .login-card {
     background: var(--card); padding: 60px; border-radius: 50px; width: 420px; text-align: center; 
     border: 1px solid var(--border); backdrop-filter: blur(40px);
-    box-shadow: 0 0 60px var(--primary-glow); /* Krasser Glow Effekt */
+    box-shadow: 0 0 60px var(--primary-glow); 
     animation: entrance 1s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -135,7 +132,6 @@ input {
     font-family: inherit; font-size: 16px; box-sizing: border-box; outline: none;
 }
 input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
-
 </style>
 </head>
 <body>
@@ -149,7 +145,7 @@ input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
 
 <div id="nav-right">
     <button id="stempel-btn" class="btn-blue" onclick="toggleStempel()">KOMMEN</button>
-    <button class="btn-dark" onclick="viewUserLogs(currentUserIndex())">LOGS</button>
+    <button class="btn-dark" onclick="viewUserLogs(currentUser ? users.indexOf(currentUser) : 0)">LOGS</button>
     <button id="dash-btn" class="btn-dark" onclick="toggleView()" style="display:none;">MGMT</button>
     <button class="btn-red" onclick="location.reload()" style="padding: 16px 20px;">✕</button>
 </div>
@@ -210,11 +206,9 @@ input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
 <div id="modal-user-view" class="modal"><div class="modal-content"><h2 id="view-u-name" style="margin: 0 0 5px 0; font-size: 32px;"></h2><p id="view-u-role" style="color:var(--primary); font-weight:800; font-size: 14px; margin: 0 0 30px 0;"></p><div id="view-u-stats" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:30px;"></div><div id="view-u-logs" style="max-height:200px; overflow-y:auto; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 15px;"></div><button class="btn-dark" style="width:100%; margin-top:30px;" onclick="closeModals()">ZURÜCK</button></div></div>
 
 <script>
-// --- LOGIK (UNVERÄNDERT) ---
 const CLOUD_DB = "https://the-lux-system-default-rtdb.firebaseio.com/data.json";
 const WH_MAIN = "https://discord.com/api/webhooks/1480511718445547564/eF7F71sEzjAeEuisEI8C59wX9yzhiw8ClXaGHG45Vo7ZLuZgNXftx0tUpgG-w6ISe2pe";
 const WH_BETS = "https://discord.com/api/webhooks/1480522708092588064/zdVPCFNZL7SEv9taen6e4zqFYZca32uHVTWC6HDMBisTkG8dQfi5YwFjtaOsYrv8fRkH";
-const WH_STOCK = "https://discord.com/api/webhooks/1480549073256710214/nXBqxQMs8fo5PLo_sVyH7STy2tUqOauxdRCXek0gd1lmBDCtb0Qw0WsguY_J1WCs7ecj";
 
 const ALL_PRODUCTS = [
     {n:"Tequila", p:500, c:"Getränke"}, {n:"Whiskey", p:300, c:"Getränke"}, {n:"Wein", p:200, c:"Getränke"},
@@ -278,7 +272,7 @@ function renderPOS(cat) {
 function updateBasket(name, val) { manualInput(name, (basket[name] || 0) + val); }
 function manualInput(name, val) {
     let t = parseInt(val) || 0; if(t < 0) t = 0; if(lager[name] !== Infinity && t > lager[name]) t = lager[name];
-    basket[name] = t; renderPOS(document.querySelector('.btn-cat.active').innerText === "Flüge" ? "Heli" : document.querySelector('.btn-cat.active').innerText); renderBill();
+    basket[name] = t; renderBill();
 }
 
 function addBetToBill() {
@@ -295,29 +289,71 @@ function renderBill() {
 }
 
 async function checkout() {
-    const t = renderBill(); if(t === 0) return;
-    const itemsLog = [];
-    for(let n in basket) {
-        if(basket[n] > 0) {
-            itemsLog.push({n, q: basket[n], p: ALL_PRODUCTS.find(x=>x.n===n).p});
-            if(lager[n] !== Infinity) { lager[n] -= basket[n]; }
+    const total = renderBill();
+    if (total === 0) return alert("Warenkorb leer!");
+
+    let itemsLog = "";
+    for (let name in basket) {
+        if (basket[name] > 0) {
+            itemsLog += `• ${name} x${basket[name]}\n`;
+            if (lager[name] !== undefined && lager[name] !== Infinity) {
+                lager[name] -= basket[name];
+            }
         }
     }
-    const idx = users.findIndex(u => u.name === currentUser.name);
-    if(!users[idx].sales) users[idx].sales = [];
-    users[idx].sales.push({ d: new Date().toISOString(), total: t, items: itemsLog });
-    
-    await fetch(WH_MAIN, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({embeds:[{title:"BUCHUNG", description:`Mitarbeiter: ${currentUser.name}\nTOTAL: ${t}€`, color:3829232}]})});
-    
-    basket={}; manualBets=[]; await save(); renderBill(); alert("BUCHUNG ERFOLGREICH");
+
+    manualBets.forEach(bet => {
+        itemsLog += `• WETTE: ${bet.name} (${bet.amount.toLocaleString()} EUR)\n`;
+    });
+
+    const payload = {
+        embeds: [{
+            title: "🧾 NEUE QUITTUNG",
+            color: 3829232,
+            fields: [
+                { name: "Mitarbeiter", value: currentUser ? currentUser.name : "Unbekannt", inline: true },
+                { name: "Gesamtbetrag", value: total.toLocaleString() + " EUR", inline: true },
+                { name: "Artikel", value: itemsLog || "Keine Artikel" }
+            ],
+            timestamp: new Date().toISOString()
+        }]
+    };
+
+    try {
+        const response = await fetch(WH_MAIN, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            if (manualBets.length > 0) {
+                await fetch(WH_BETS, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: `🎰 **Neue Wette eingereicht von ${currentUser.name}!** Total: ${total.toLocaleString()}€` })
+                });
+            }
+            
+            basket = {};
+            manualBets = [];
+            await save();
+            renderBill();
+            const currentTab = document.querySelector('.btn-cat.active').innerText;
+            renderPOS(currentTab === "Flüge" ? "Heli" : currentTab);
+            alert("QUITTUNG ERFOLGREICH GESENDET!");
+        } else {
+            alert("Fehler beim Senden an Discord!");
+        }
+    } catch (e) {
+        alert("Verbindungsfehler!");
+    }
 }
 
 function toggleView() {
     document.getElementById('dash-ui').classList.toggle('active');
     document.getElementById('main-ui').classList.toggle('active');
-    if(document.getElementById('dash-ui').classList.contains('active')) {
-        renderManagement();
-    }
+    if(document.getElementById('dash-ui').classList.contains('active')) renderManagement();
 }
 
 function renderManagement() {
@@ -334,7 +370,6 @@ function viewUserLogs(i) {
 
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
-function setUnendlich() { document.getElementById('unendlich-msg').style.display = 'block'; }
 function openLagerEdit(n) { currentEditLager = n; document.getElementById('lager-edit-title').innerText = n; openModal('modal-lager-edit'); }
 async function saveLagerEdit() { lager[currentEditLager] = parseInt(document.getElementById('lager-edit-val').value); await save(); closeModals(); renderManagement(); }
 async function saveNewUser() { const n = document.getElementById('new-u-name').value, p = document.getElementById('new-u-pass').value, r = document.getElementById('new-u-role').value; users.push({name:n, pass:p, role:r, logs:[], sales:[]}); await save(); closeModals(); renderManagement(); }
@@ -345,124 +380,72 @@ function toggleStempel() {
     else { btn.innerText = "KOMMEN"; btn.className = "btn-blue"; document.getElementById('live-stempel').style.display = "none"; activeShiftStart = null; }
 }
 
-setInterval(() => {
-    document.getElementById('time-display').innerText = new Date().toLocaleTimeString('de-DE');
-}, 1000);
-
+setInterval(() => { document.getElementById('time-display').innerText = new Date().toLocaleTimeString('de-DE'); }, 1000);
 load();
 
-// --- ANIMIERTER HINTERGRUND JAVASCRIPT (PLEXUS EFFECT) ---
 const canvas = document.getElementById('plexus-bg');
 const ctx = canvas.getContext('2d');
 let particles = [];
-const particleCount = 70; // Anzahl der Punkte
-const connectDistance = 180; // Ab wenn Linien gezeichnet werden
-const mouse = { x: null, y: null, radius: 200 }; // Maus-Interaktion
+const particleCount = 70;
+const connectDistance = 180;
+const mouse = { x: null, y: null, radius: 200 };
 
-// Canvas Größe anpassen
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resize);
 resize();
 
-// Mausposition tracken
-window.addEventListener('mousemove', (e) => {
-    mouse.x = e.x;
-    mouse.y = e.y;
-});
+window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
 
-// Partikel Klasse
 class Particle {
     constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
         this.size = Math.random() * 2 + 1;
-        this.vx = (Math.random() - 0.5) * 0.4; // Geschwindigkeit X ("rumschwabbeln")
-        this.vy = (Math.random() - 0.5) * 0.4; // Geschwindigkeit Y
-        // Farbe zwischen Blau und Violett mischen
+        this.vx = (Math.random() - 0.5) * 0.4;
+        this.vy = (Math.random() - 0.5) * 0.4;
         this.color = Math.random() > 0.5 ? '#3a6df0' : '#a855f7';
     }
-
-    // Partikel bewegen
     update() {
-        // Maus-Abstoßung (Krasse Interaktion)
         if (mouse.x && mouse.y) {
             let dx = this.x - mouse.x;
             let dy = this.y - mouse.y;
             let distance = Math.sqrt(dx*dx + dy*dy);
             if (distance < mouse.radius) {
-                let forceDirX = dx / distance;
-                let forceDirY = dy / distance;
                 let force = (mouse.radius - distance) / mouse.radius;
-                this.vx += forceDirX * force * 0.03;
-                this.vy += forceDirY * force * 0.03;
+                this.vx += (dx / distance) * force * 0.03;
+                this.vy += (dy / distance) * force * 0.03;
             }
         }
-
-        // Geschwindigkeit dämpfen (damit sie nicht unendlich beschleunigen)
-        this.vx *= 0.99;
-        this.vy *= 0.99;
-
-        // Normale Bewegung
-        this.x += this.vx;
-        this.y += this.vy;
-
-        // Wände abprallen
+        this.vx *= 0.99; this.vy *= 0.99;
+        this.x += this.vx; this.y += this.vy;
         if (this.x > canvas.width || this.x < 0) this.vx = -this.vx;
         if (this.y > canvas.height || this.y < 0) this.vy = -this.vy;
     }
-
-    // Partikel zeichnen
     draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color; ctx.fill();
     }
 }
 
-// Partikel initialisieren
-for (let i = 0; i < particleCount; i++) {
-    particles.push(new Particle());
-}
+for (let i = 0; i < particleCount; i++) particles.push(new Particle());
 
-// Linien zeichnen (Plexus)
-function drawLines() {
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
     for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
             let dx = particles[i].x - particles[j].x;
             let dy = particles[i].y - particles[j].y;
-            let distance = Math.sqrt(dx*dx + dy*dy);
-
-            if (distance < connectDistance) {
-                // Opazität basierend auf Entfernung (fadet aus)
-                let opacity = 1 - (distance / connectDistance);
-                ctx.strokeStyle = `rgba(138, 143, 157, ${opacity * 0.2})`; // Dimmed Border Color
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(particles[i].x, particles[i].y);
-                ctx.lineTo(particles[j].x, particles[j].y);
-                ctx.stroke();
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < connectDistance) {
+                ctx.strokeStyle = `rgba(138, 143, 157, ${(1 - dist/connectDistance) * 0.2})`;
+                ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
             }
         }
     }
-}
-
-// Animations-Schleife
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Canvas leeren
-
-    particles.forEach(p => {
-        p.update();
-        p.draw();
-    });
-
-    drawLines();
     requestAnimationFrame(animate);
 }
-
 animate();
 </script>
 </body>
