@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>THE LUX - ELITE POS v17 PLATINUM</title>
+<title>THE LUX - ELITE POS v19 PLATINUM</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -17,6 +17,47 @@
     --danger: #ff3333; 
     --success: #00ff95;
     --accent-gradient: linear-gradient(135deg, #3a6df0 0%, #a855f7 100%);
+}
+
+#custom-alert-container {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.custom-alert {
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 18px 40px;
+    border-radius: 20px;
+    font-weight: 700;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    animation: alertIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    border-left: 5px solid var(--primary);
+}
+
+.custom-alert.error { border-left-color: var(--danger); }
+.custom-alert.success { border-left-color: var(--success); }
+
+@keyframes alertIn {
+    from { opacity: 0; transform: translateY(-20px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes alertOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(-20px) scale(0.9); }
 }
 
 #plexus-bg {
@@ -112,8 +153,28 @@ button {
 #bill-area { margin-top: 60px; background: rgba(58, 109, 240, 0.03); padding: 40px; border-radius: 40px; border: 1px solid rgba(58, 109, 240, 0.2); }
 #bill-total { font-size: 48px; font-weight: 800; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
+#bill-items {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 30px;
+}
+#bill-items li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: var(--text-dim);
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.discount-wrap { display: flex; gap: 10px; margin-bottom: 30px; }
+.btn-discount { flex: 1; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-dim); border-radius: 12px; font-size: 14px; }
+.btn-discount.active { background: var(--primary); color: white; border-color: var(--primary); }
+
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(15px); }
-.modal-content { background: #0a0a0e; padding: 50px; border-radius: 40px; border: 1px solid var(--border); width: 95%; max-width: 600px; box-shadow: 0 0 100px rgba(58,109,240,0.1); }
+.modal-content { background: #0a0a0e; padding: 50px; border-radius: 40px; border: 1px solid var(--border); width: 95%; max-width: 650px; position: relative; }
+
+.edit-modal { z-index: 11000 !important; }
 
 #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
 
@@ -126,17 +187,32 @@ button {
 
 @keyframes entrance { from { transform: scale(0.9) translateY(20px); opacity: 0; filter: blur(10px); } to { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); } }
 
-input { 
+input, select { 
     background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; 
     padding: 18px; border-radius: 18px; width: 100%; margin-bottom: 15px; 
     font-family: inherit; font-size: 16px; box-sizing: border-box; outline: none;
 }
 input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
+
+.menu-dots { position: absolute; top: 30px; right: 30px; cursor: pointer; padding: 10px; z-index: 10; }
+.menu-dots span { display: block; width: 5px; height: 5px; background: var(--text-dim); border-radius: 50%; margin: 3px 0; }
+.menu-dropdown { position: absolute; top: 65px; right: 30px; background: #16161d; border: 1px solid var(--border); border-radius: 15px; display: none; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100; }
+.menu-dropdown button { background: transparent; padding: 12px 20px; border: none; border-bottom: 1px solid var(--border); color: white; font-size: 14px; text-align: left; border-radius: 0; width: 100%; cursor: pointer; }
+.menu-dropdown button:last-child { border-bottom: none; color: var(--danger); }
+.menu-dropdown button:hover { background: rgba(255,255,255,0.05); }
+
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+.stat-box { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; text-align: center; border: 1px solid var(--border); }
+.stat-val { display: block; font-size: 20px; font-weight: 800; color: var(--primary); margin-top: 5px; }
+.log-table { width: 100%; border-collapse: collapse; color: var(--text); }
+.log-table th { text-align: left; color: var(--text-dim); padding: 10px; border-bottom: 1px solid var(--border); font-size: 12px; }
+.log-table td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 14px; }
 </style>
 </head>
 <body>
 
 <canvas id="plexus-bg"></canvas>
+<div id="custom-alert-container"></div>
 
 <div id="header-info">
     <div id="time-display" style="font-size: 24px; font-weight: 800; letter-spacing: -1px;">00:00:00</div>
@@ -145,7 +221,7 @@ input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
 
 <div id="nav-right">
     <button id="stempel-btn" class="btn-blue" onclick="toggleStempel()">KOMMEN</button>
-    <button class="btn-dark" onclick="viewUserLogs(currentUser ? users.indexOf(currentUser) : 0)">LOGS</button>
+    <button class="btn-dark" onclick="openMyLogs()">LOGS</button>
     <button id="dash-btn" class="btn-dark" onclick="toggleView()" style="display:none;">MGMT</button>
     <button class="btn-red" onclick="location.reload()" style="padding: 16px 20px;">✕</button>
 </div>
@@ -183,11 +259,37 @@ input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
 
     <div id="bill-area">
         <div id="bill-items"></div>
+        <div class="discount-wrap">
+            <button class="btn-discount active" onclick="setDiscount(0, this)">0%</button>
+            <button class="btn-discount" onclick="setDiscount(25, this)">25%</button>
+            <button class="btn-discount" onclick="setDiscount(50, this)">50%</button>
+            <button class="btn-discount" onclick="setDiscount(75, this)">75%</button>
+            <button class="btn-discount" onclick="setDiscount(100, this)">100%</button>
+        </div>
         <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px solid var(--border); padding-top: 30px;">
             <span style="color: var(--text-dim); font-weight: 600; font-size: 18px;">GESAMTBERECHNUNG</span>
             <span id="bill-total">0 EUR</span>
         </div>
         <button class="btn-blue" style="width:100%; margin-top:40px; font-size:22px; padding: 30px;" onclick="checkout()">QUITTUNG ABSCHLIESSEN</button>
+    </div>
+</div>
+
+<div id="modal-my-logs" class="modal">
+    <div class="modal-content">
+        <h2 style="margin-top:0;">Meine Statistiken</h2>
+        <div class="stats-grid">
+            <div class="stat-box">Tag<span class="stat-val" id="stat-day">0 €</span></div>
+            <div class="stat-box">Woche<span class="stat-val" id="stat-week">0 €</span></div>
+            <div class="stat-box">Monat<span class="stat-val" id="stat-month">0 €</span></div>
+        </div>
+        <h3 style="margin-bottom:10px;">Arbeitszeiten</h3>
+        <div style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 15px;">
+            <table class="log-table">
+                <thead><tr><th>Datum</th><th>Kommen</th><th>Gehen</th><th>Dauer</th></tr></thead>
+                <tbody id="time-log-body"></tbody>
+            </table>
+        </div>
+        <button class="btn-dark" style="width:100%; margin-top:25px;" onclick="closeModals()">SCHLIESSEN</button>
     </div>
 </div>
 
@@ -201,14 +303,65 @@ input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
     <div id="lager-list" class="grid"></div>
 </div>
 
-<div id="modal-new-user" class="modal"><div class="modal-content"><h3>Neuer Zugang</h3><input type="text" id="new-u-name" placeholder="Name"><input type="password" id="new-u-pass" placeholder="Passwort"><select id="new-u-role"><option>Geschäftsinhaber</option><option>Geschäftsführer</option><option>Management</option><option>Bartender</option><option>Kellner</option><option>Security</option><option>Reception</option></select><label style="display:flex; align-items:center; gap:10px; margin: 20px 0; color: var(--text-dim);"><input type="checkbox" id="new-u-chauffeur" style="width:auto; margin:0;"> Zweitrolle Chauffeur</label><div style="display:flex; gap:15px; margin-top:40px;"><button class="btn-blue" style="flex:2" onclick="saveNewUser()">SPEICHERN</button><button class="btn-dark" style="flex:1" onclick="closeModals()">ABBRUCH</button></div></div></div>
+<div id="modal-edit-name" class="modal edit-modal">
+    <div class="modal-content">
+        <h3>Name ändern</h3>
+        <input type="text" id="custom-name-input">
+        <div style="display:flex; gap:10px;">
+            <button class="btn-blue" style="flex:2" onclick="processNameChange()">SPEICHERN</button>
+            <button class="btn-dark" style="flex:1" onclick="closeEditModal('modal-edit-name')">ABBRUCH</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-edit-pass" class="modal edit-modal">
+    <div class="modal-content">
+        <h3>Passwort ändern</h3>
+        <input type="text" id="custom-pass-input" placeholder="Neues Passwort">
+        <div style="display:flex; gap:10px;">
+            <button class="btn-blue" style="flex:2" onclick="processPassChange()">SPEICHERN</button>
+            <button class="btn-dark" style="flex:1" onclick="closeEditModal('modal-edit-pass')">ABBRUCH</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-edit-delete" class="modal edit-modal">
+    <div class="modal-content">
+        <h3 style="color:var(--danger)">Login löschen?</h3>
+        <p>Möchtest du diesen Account wirklich entfernen? Dies kann nicht rückgängig gemacht werden.</p>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="btn-red" style="flex:2" onclick="processDelete()">LÖSCHEN</button>
+            <button class="btn-dark" style="flex:1" onclick="closeEditModal('modal-edit-delete')">ABBRUCH</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-new-user" class="modal"><div class="modal-content"><h3>Neuer Zugang</h3><input type="text" id="new-u-name" placeholder="Name"><input type="password" id="new-u-pass" placeholder="Passwort"><select id="new-u-role"><option>Bartender</option><option>Kellner</option><option>Security</option><option>Reception</option><option>Management</option><option>Geschäftsführer</option><option>Geschäftsinhaber</option></select><label style="display:flex; align-items:center; gap:10px; margin: 20px 0; color: var(--text-dim);"><input type="checkbox" id="new-u-chauffeur" style="width:auto; margin:0;"> Zweitrolle Chauffeur</label><div style="display:flex; gap:15px; margin-top:40px;"><button class="btn-blue" style="flex:2" onclick="saveNewUser()">SPEICHERN</button><button class="btn-dark" style="flex:1" onclick="closeModals()">ABBRUCH</button></div></div></div>
 <div id="modal-lager-edit" class="modal"><div class="modal-content"><h3 id="lager-edit-title">Bestand</h3><input type="number" id="lager-edit-val" placeholder="Menge"><button class="btn-blue" style="width:100%" onclick="saveLagerEdit()">SPEICHERN</button></div></div>
-<div id="modal-user-view" class="modal"><div class="modal-content"><h2 id="view-u-name" style="margin: 0 0 5px 0; font-size: 32px;"></h2><p id="view-u-role" style="color:var(--primary); font-weight:800; font-size: 14px; margin: 0 0 30px 0;"></p><div id="view-u-stats" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:30px;"></div><div id="view-u-logs" style="max-height:200px; overflow-y:auto; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 15px;"></div><button class="btn-dark" style="width:100%; margin-top:30px;" onclick="closeModals()">ZURÜCK</button></div></div>
+
+<div id="modal-user-view" class="modal">
+    <div class="modal-content">
+        <div class="menu-dots" onclick="toggleUserMenu(event)">
+            <span></span><span></span><span></span>
+        </div>
+        <div class="menu-dropdown" id="user-menu-dropdown">
+            <button onclick="uiEditName()">Name ändern</button>
+            <button onclick="uiEditPass()">Passwort ändern</button>
+            <button onclick="uiEditDelete()">Login löschen</button>
+        </div>
+        <h2 id="view-u-name" style="margin: 0 0 5px 0; font-size: 32px;"></h2>
+        <p id="view-u-role" style="color:var(--primary); font-weight:800; font-size: 14px; margin: 0 0 30px 0;"></p>
+        <div id="view-u-stats" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:30px;"></div>
+        <div id="view-u-logs" style="max-height:200px; overflow-y:auto; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 15px;"></div>
+        <button class="btn-dark" style="width:100%; margin-top:30px;" onclick="closeModals()">ZURÜCK</button>
+    </div>
+</div>
 
 <script>
 const CLOUD_DB = "https://the-lux-system-default-rtdb.firebaseio.com/data.json";
 const WH_MAIN = "https://discord.com/api/webhooks/1480511718445547564/eF7F71sEzjAeEuisEI8C59wX9yzhiw8ClXaGHG45Vo7ZLuZgNXftx0tUpgG-w6ISe2pe";
 const WH_BETS = "https://discord.com/api/webhooks/1480522708092588064/zdVPCFNZL7SEv9taen6e4zqFYZca32uHVTWC6HDMBisTkG8dQfi5YwFjtaOsYrv8fRkH";
+const WH_STOCK_ALERT = "https://discord.com/api/webhooks/1480549073256710214/nXBqxQMs8fo5PLo_sVyH7STy2tUqOauxdRCXek0gd1lmBDCtb0Qw0WsguY_J1WCs7ecj";
 
 const ALL_PRODUCTS = [
     {n:"Tequila", p:500, c:"Getränke"}, {n:"Whiskey", p:300, c:"Getränke"}, {n:"Wein", p:200, c:"Getränke"},
@@ -221,9 +374,22 @@ const ALL_PRODUCTS = [
     {n:"Event Eintritt", p:5000, c:"Fightclub"}, {n:"Miete Grundgebühr 1H", p:50000, c:"Fightclub"}, {n:"+30 Minuten", p:30000, c:"Fightclub"}
 ];
 
-let users = [{name:"LUX_STAFF", pass:"Staff3221", role:"Geschäftsinhaber", logs:[], sales:[]}];
+let users = [{name:"LUX_STAFF", pass:"Staff3221", role:"Geschäftsinhaber", logs:[], sales:[], workLogs:[]}];
 let lager = {};
 let basket = {}, manualBets = [], currentUser = null, activeShiftStart = null, currentEditLager = null, selectedUserIdx = null;
+let currentDiscount = 0;
+
+function showAlert(msg, type = 'info') {
+    const container = document.getElementById('custom-alert-container');
+    const alert = document.createElement('div');
+    alert.className = `custom-alert ${type}`;
+    alert.innerHTML = `<span>${msg}</span>`;
+    container.appendChild(alert);
+    setTimeout(() => {
+        alert.style.animation = 'alertOut 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards';
+        setTimeout(() => alert.remove(), 500);
+    }, 3000);
+}
 
 async function save() { await fetch(CLOUD_DB, { method: 'PUT', body: JSON.stringify({ users, lager }) }); }
 async function load() {
@@ -239,13 +405,17 @@ function login() {
     const u = document.getElementById('logU').value, p = document.getElementById('logP').value;
     const f = users.find(x => x.name === u && x.pass === p);
     if(f) {
-        currentUser = f; document.getElementById('login-overlay').style.display = 'none';
+        currentUser = f;
+        if(!currentUser.sales) currentUser.sales = [];
+        if(!currentUser.workLogs) currentUser.workLogs = [];
+        document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('nav-right').style.display = 'flex';
         document.getElementById('main-ui').classList.add('active');
         if(["Geschäftsinhaber", "Geschäftsführer", "Management"].includes(f.role)) document.getElementById('dash-btn').style.display = 'block';
         ALL_PRODUCTS.forEach(i => { if(lager[i.n] === undefined) lager[i.n] = 999; });
         changeTab('Getränke', document.querySelector('.btn-cat'));
-    } else alert("CODE FALSCH");
+        showAlert(`Willkommen, ${f.name}`, 'success');
+    } else showAlert("ZUGANGSCODE FALSCH", 'error');
 }
 
 function changeTab(cat, btn) {
@@ -263,91 +433,161 @@ function renderPOS(cat) {
             </div>
             <div class="qty-ctrl">
                 <button class="qty-btn" onclick="updateBasket('${i.n}',-1)">−</button>
-                <input type="number" class="qty-input" id="inp-${i.n}" value="${basket[i.n]||0}" onchange="manualInput('${i.n}', this.value)">
+                <input type="number" class="qty-input" id="inp-${i.n}" value="${basket[i.n]||0}" oninput="manualInput('${i.n}', this.value)">
                 <button class="qty-btn" onclick="updateBasket('${i.n}',1)">+</button>
             </div>
         </div>`).join('');
 }
 
-function updateBasket(name, val) { manualInput(name, (basket[name] || 0) + val); }
+function updateBasket(name, val) { 
+    const current = basket[name] || 0;
+    manualInput(name, current + val); 
+}
+
 function manualInput(name, val) {
-    let t = parseInt(val) || 0; if(t < 0) t = 0; if(lager[name] !== Infinity && t > lager[name]) t = lager[name];
-    basket[name] = t; renderBill();
+    let t = parseInt(val) || 0; 
+    if(t < 0) t = 0; 
+    if(lager[name] !== Infinity && t > lager[name]) t = lager[name];
+    basket[name] = t; 
+    const inp = document.getElementById(`inp-${name}`);
+    if(inp) inp.value = t;
+    renderBill();
 }
 
 function addBetToBill() {
     const n = document.getElementById('bet-user').value, t = document.getElementById('bet-tel').value, a = parseInt(document.getElementById('bet-amount').value);
-    if(!n || a < 10000) return alert("MIN 10.000€");
-    manualBets.push({name:n, tel:t, amount:a}); document.getElementById('bet-user').value=""; document.getElementById('bet-tel').value=""; document.getElementById('bet-amount').value=""; renderBill();
+    if(!n || a < 10000) return showAlert("MINDESTENS 10.000€ EINSATZ", 'error');
+    manualBets.push({name:n, tel:t, amount:a}); 
+    document.getElementById('bet-user').value=""; document.getElementById('bet-tel').value=""; document.getElementById('bet-amount').value=""; 
+    renderBill();
+    showAlert("Wette hinzugefügt");
+}
+
+function setDiscount(val, btn) {
+    currentDiscount = val;
+    document.querySelectorAll('.btn-discount').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderBill();
 }
 
 function renderBill() {
-    let t = 0, h = "";
-    for(let n in basket) if(basket[n]>0) { let i = ALL_PRODUCTS.find(p=>p.n===n); t+=basket[n]*i.p; h+=`<div>${n} x${basket[n]}</div>`; }
-    manualBets.forEach(b => { t+=b.amount; h+=`<div style="color:var(--danger)">Wette: ${b.name}</div>`; });
-    document.getElementById('bill-items').innerHTML = h; document.getElementById('bill-total').innerText = t.toLocaleString()+" EUR"; return t;
+    const billItems = document.getElementById('bill-items');
+    billItems.innerHTML = "";
+    let t = 0;
+    let productsTotal = 0;
+
+    for(let n in basket) {
+        if(basket[n] > 0) {
+            let i = ALL_PRODUCTS.find(p=>p.n===n);
+            let subtotal = basket[n] * i.p;
+            productsTotal += subtotal;
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${n} x${basket[n]}</span> <span>${subtotal.toLocaleString()} EUR</span>`;
+            billItems.appendChild(li);
+        }
+    }
+
+    let discountAmount = productsTotal * (currentDiscount / 100);
+    let finalProductsTotal = productsTotal - discountAmount;
+    t += finalProductsTotal;
+
+    if(currentDiscount > 0) {
+        const li = document.createElement('li');
+        li.style.color = "var(--success)";
+        li.innerHTML = `<span>Rabatt (${currentDiscount}%)</span> <span>-${discountAmount.toLocaleString()} EUR</span>`;
+        billItems.appendChild(li);
+    }
+
+    manualBets.forEach(b => { 
+        t += b.amount; 
+        const li = document.createElement('li');
+        li.innerHTML = `<span>Wette (${b.name})</span> <span>${b.amount.toLocaleString()} EUR</span>`;
+        billItems.appendChild(li);
+    });
+
+    document.getElementById('bill-total').innerText = t.toLocaleString()+" EUR"; 
+    return t;
 }
 
 async function checkout() {
     const total = renderBill();
-    if (total === 0) return alert("Warenkorb leer!");
-
-    let itemsLog = "";
+    if (total === 0) return showAlert("Warenkorb ist leer!", 'error');
+    let itemsLogMain = "";
+    if(currentDiscount > 0) itemsLogMain += `⚠️ RABATT GEWÄHRT: ${currentDiscount}%\n`;
     for (let name in basket) {
         if (basket[name] > 0) {
-            itemsLog += `• ${name} x${basket[name]}\n`;
+            itemsLogMain += `• ${name} x${basket[name]}\n`;
             if (lager[name] !== undefined && lager[name] !== Infinity) {
                 lager[name] -= basket[name];
+                if (lager[name] < 20) {
+                    const stockAlertPayload = { embeds: [{ title: "⚠️ LAGERWARNUNG", color: 16711680, fields: [{ name: "Produkt", value: name, inline: true }, { name: "Bestand", value: lager[name].toString(), inline: true }], timestamp: new Date().toISOString() }] };
+                    fetch(WH_STOCK_ALERT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockAlertPayload) }).catch(e => {});
+                }
             }
         }
     }
+    manualBets.forEach(bet => { itemsLogMain += `• Wetteinsatz - ${bet.amount.toLocaleString()} EUR\n`; });
+    const payloadMain = { embeds: [{ title: "🧾 NEUE QUITTUNG", color: 3829232, fields: [{ name: "Mitarbeiter", value: currentUser.name, inline: true }, { name: "Summe", value: total.toLocaleString() + " EUR", inline: true }, { name: "Artikel", value: itemsLogMain }], timestamp: new Date().toISOString() }] };
+    
+    fetch(WH_MAIN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadMain) }).catch(() => {});
+    
+    for(let bet of manualBets) {
+        const payloadBet = { embeds: [{ title: "🎰 NEUE WETTE", color: 11040503, fields: [{ name: "Name", value: bet.name, inline: true }, { name: "Tel", value: bet.tel || "N/A", inline: true }, { name: "Einsatz", value: bet.amount.toLocaleString() + " EUR", inline: false }], timestamp: new Date().toISOString() }] };
+        fetch(WH_BETS, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadBet) }).catch(() => {});
+    }
 
-    manualBets.forEach(bet => {
-        itemsLog += `• WETTE: ${bet.name} (${bet.amount.toLocaleString()} EUR)\n`;
-    });
+    currentUser.sales.push({ amount: total, date: new Date().toISOString() });
+    
+    basket = {}; 
+    manualBets = [];
+    currentDiscount = 0;
+    document.querySelectorAll('.btn-discount').forEach(b => b.classList.remove('active'));
+    document.querySelector('.btn-discount').classList.add('active'); 
+    
+    await save();
+    renderBill();
+    const curCat = document.querySelector('.btn-cat.active').innerText;
+    renderPOS(curCat === "Flüge" ? "Heli" : curCat);
+    showAlert("QUITTUNG ERFOLGREICH ABGESENDET", 'success');
+}
 
-    const payload = {
-        embeds: [{
-            title: "🧾 NEUE QUITTUNG",
-            color: 3829232,
-            fields: [
-                { name: "Mitarbeiter", value: currentUser ? currentUser.name : "Unbekannt", inline: true },
-                { name: "Gesamtbetrag", value: total.toLocaleString() + " EUR", inline: true },
-                { name: "Artikel", value: itemsLog || "Keine Artikel" }
-            ],
-            timestamp: new Date().toISOString()
-        }]
-    };
-
-    try {
-        const response = await fetch(WH_MAIN, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+function toggleStempel() {
+    const btn = document.getElementById('stempel-btn');
+    const now = new Date();
+    if(btn.innerText === "KOMMEN") {
+        activeShiftStart = now; btn.innerText = "GEHEN"; btn.className = "btn-red"; document.getElementById('live-stempel').style.display = "block";
+        showAlert("Dienst begonnen", 'success');
+    } else {
+        const dur = Math.round((now - activeShiftStart) / 1000 / 60);
+        currentUser.workLogs.unshift({
+            date: now.toLocaleDateString('de-DE'),
+            in: activeShiftStart.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}),
+            out: now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}),
+            duration: dur + " Min"
         });
-
-        if (response.ok) {
-            if (manualBets.length > 0) {
-                await fetch(WH_BETS, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ content: `🎰 **Neue Wette eingereicht von ${currentUser.name}!** Total: ${total.toLocaleString()}€` })
-                });
-            }
-            
-            basket = {};
-            manualBets = [];
-            await save();
-            renderBill();
-            const currentTab = document.querySelector('.btn-cat.active').innerText;
-            renderPOS(currentTab === "Flüge" ? "Heli" : currentTab);
-            alert("QUITTUNG ERFOLGREICH GESENDET!");
-        } else {
-            alert("Fehler beim Senden an Discord!");
-        }
-    } catch (e) {
-        alert("Verbindungsfehler!");
+        btn.innerText = "KOMMEN"; btn.className = "btn-blue"; document.getElementById('live-stempel').style.display = "none";
+        save();
+        showAlert(`Dienst beendet (${dur} Min)`);
     }
+}
+
+function openMyLogs() {
+    const now = new Date();
+    const startDay = new Date(now.setHours(0,0,0,0));
+    const startWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+    const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    let dSum = 0, wSum = 0, mSum = 0;
+    currentUser.sales.forEach(s => {
+        const sd = new Date(s.date);
+        if(sd >= startDay) dSum += s.amount;
+        if(sd >= startWeek) wSum += s.amount;
+        if(sd >= startMonth) mSum += s.amount;
+    });
+    document.getElementById('stat-day').innerText = dSum.toLocaleString() + " €";
+    document.getElementById('stat-week').innerText = wSum.toLocaleString() + " €";
+    document.getElementById('stat-month').innerText = mSum.toLocaleString() + " €";
+    document.getElementById('time-log-body').innerHTML = currentUser.workLogs.map(l => `<tr><td>${l.date}</td><td>${l.in}</td><td style="color:var(--danger)">${l.out}</td><td>${l.duration}</td></tr>`).join('');
+    openModal('modal-my-logs');
 }
 
 function toggleView() {
@@ -362,91 +602,156 @@ function renderManagement() {
 }
 
 function viewUserLogs(i) {
-    selectedUserIdx = i; const u = users[i]; 
+    selectedUserIdx = i;
+    const u = users[i];
     document.getElementById('view-u-name').innerText = u.name;
     document.getElementById('view-u-role').innerText = u.role.toUpperCase();
+    document.getElementById('user-menu-dropdown').style.display = 'none';
     openModal('modal-user-view');
+}
+
+function toggleUserMenu(e) {
+    if(e) e.stopPropagation();
+    const d = document.getElementById('user-menu-dropdown');
+    d.style.display = d.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function uiEditName() {
+    document.getElementById('custom-name-input').value = users[selectedUserIdx].name;
+    document.getElementById('user-menu-dropdown').style.display = 'none';
+    openModal('modal-edit-name');
+}
+async function processNameChange() {
+    const val = document.getElementById('custom-name-input').value;
+    if(val) {
+        users[selectedUserIdx].name = val;
+        await save();
+        closeEditModal('modal-edit-name');
+        renderManagement();
+        showAlert("Name aktualisiert");
+    }
+}
+
+function uiEditPass() {
+    document.getElementById('custom-pass-input').value = "";
+    document.getElementById('user-menu-dropdown').style.display = 'none';
+    openModal('modal-edit-pass');
+}
+async function processPassChange() {
+    const val = document.getElementById('custom-pass-input').value;
+    if(val) {
+        users[selectedUserIdx].pass = val;
+        await save();
+        closeEditModal('modal-edit-pass');
+        showAlert("Passwort geändert");
+    }
+}
+
+function uiEditDelete() {
+    document.getElementById('user-menu-dropdown').style.display = 'none';
+    openModal('modal-edit-delete');
+}
+async function processDelete() {
+    users.splice(selectedUserIdx, 1);
+    await save();
+    closeEditModal('modal-edit-delete');
+    closeModals();
+    renderManagement();
+    showAlert("Account gelöscht", 'error');
 }
 
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
+function closeEditModal(id) { document.getElementById(id).style.display='none'; }
+
 function openLagerEdit(n) { currentEditLager = n; document.getElementById('lager-edit-title').innerText = n; openModal('modal-lager-edit'); }
-async function saveLagerEdit() { lager[currentEditLager] = parseInt(document.getElementById('lager-edit-val').value); await save(); closeModals(); renderManagement(); }
-async function saveNewUser() { const n = document.getElementById('new-u-name').value, p = document.getElementById('new-u-pass').value, r = document.getElementById('new-u-role').value; users.push({name:n, pass:p, role:r, logs:[], sales:[]}); await save(); closeModals(); renderManagement(); }
+async function saveLagerEdit() { lager[currentEditLager] = parseInt(document.getElementById('lager-edit-val').value); await save(); closeModals(); renderManagement(); showAlert("Bestand gespeichert"); }
+async function saveNewUser() { const n = document.getElementById('new-u-name').value, p = document.getElementById('new-u-pass').value, r = document.getElementById('new-u-role').value; if(!n || !p) return showAlert("Daten unvollständig", 'error'); users.push({name:n, pass:p, role:r, logs:[], sales:[], workLogs:[]}); await save(); closeModals(); renderManagement(); showAlert("Mitarbeiter angelegt", 'success'); }
 
-function toggleStempel() {
-    const btn = document.getElementById('stempel-btn');
-    if(btn.innerText === "KOMMEN") { activeShiftStart = new Date(); btn.innerText = "GEHEN"; btn.className = "btn-red"; document.getElementById('live-stempel').style.display = "block"; }
-    else { btn.innerText = "KOMMEN"; btn.className = "btn-blue"; document.getElementById('live-stempel').style.display = "none"; activeShiftStart = null; }
-}
-
-setInterval(() => { document.getElementById('time-display').innerText = new Date().toLocaleTimeString('de-DE'); }, 1000);
+setInterval(() => { if(document.getElementById('time-display')) document.getElementById('time-display').innerText = new Date().toLocaleTimeString('de-DE'); }, 1000);
 load();
 
+// PLEXUS SYSTEM
 const canvas = document.getElementById('plexus-bg');
 const ctx = canvas.getContext('2d');
 let particles = [];
-const particleCount = 70;
-const connectDistance = 180;
-const mouse = { x: null, y: null, radius: 200 };
-
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-window.addEventListener('resize', resize);
-resize();
+const mouse = { x: null, y: null, radius: 150 };
 
 window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
 
 class Particle {
     constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
         this.size = Math.random() * 2 + 1;
-        this.vx = (Math.random() - 0.5) * 0.4;
+        this.vx = (Math.random() - 0.5) * 0.4; // Langsame Bewegung
         this.vy = (Math.random() - 0.5) * 0.4;
-        this.color = Math.random() > 0.5 ? '#3a6df0' : '#a855f7';
     }
     update() {
-        if (mouse.x && mouse.y) {
-            let dx = this.x - mouse.x;
-            let dy = this.y - mouse.y;
-            let distance = Math.sqrt(dx*dx + dy*dy);
+        // Maus Interaktion (leichtes Wegschieben)
+        if (mouse.x != null && mouse.y != null) {
+            let dx = mouse.x - this.x;
+            let dy = mouse.y - this.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
             if (distance < mouse.radius) {
                 let force = (mouse.radius - distance) / mouse.radius;
-                this.vx += (dx / distance) * force * 0.03;
-                this.vy += (dy / distance) * force * 0.03;
+                this.vx -= dx / distance * force * 0.02;
+                this.vy -= dy / distance * force * 0.02;
             }
         }
-        this.vx *= 0.99; this.vy *= 0.99;
-        this.x += this.vx; this.y += this.vy;
-        if (this.x > canvas.width || this.x < 0) this.vx = -this.vx;
-        if (this.y > canvas.height || this.y < 0) this.vy = -this.vy;
+        
+        this.x += this.vx;
+        this.y += this.vy;
+        
+        // Grenzen prüfen
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
     }
     draw() {
-        ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = this.color; ctx.fill();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(58, 109, 240, 0.5)"; // Passend zum Design
+        ctx.fill();
     }
 }
 
-for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+function initParticles() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    particles = [];
+    let count = (canvas.width * canvas.height) / 12000;
+    for (let i = 0; i < count; i++) {
+        particles.push(new Particle());
+    }
+}
 
-function animate() {
+function animateParticles() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => { p.update(); p.draw(); });
     for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        
+        // Fäden zeichnen
         for (let j = i + 1; j < particles.length; j++) {
             let dx = particles[i].x - particles[j].x;
             let dy = particles[i].y - particles[j].y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist < connectDistance) {
-                ctx.strokeStyle = `rgba(138, 143, 157, ${(1 - dist/connectDistance) * 0.2})`;
-                ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y);
-                ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+            let dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(168, 85, 247, ${1 - dist / 120 * 0.8})`; // Lila Fäden passend zum Gradient
+                ctx.lineWidth = 0.5;
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.stroke();
             }
         }
     }
-    requestAnimationFrame(animate);
+    requestAnimationFrame(animateParticles);
 }
-animate();
+
+initParticles();
+animateParticles();
 </script>
 </body>
 </html>
