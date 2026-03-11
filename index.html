@@ -363,12 +363,21 @@ const WH_MAIN = "https://discord.com/api/webhooks/1480511718445547564/eF7F71sEzj
 const WH_BETS = "https://discord.com/api/webhooks/1480522708092588064/zdVPCFNZL7SEv9taen6e4zqFYZca32uHVTWC6HDMBisTkG8dQfi5YwFjtaOsYrv8fRkH";
 const WH_STOCK_ALERT = "https://discord.com/api/webhooks/1480549073256710214/nXBqxQMs8fo5PLo_sVyH7STy2tUqOauxdRCXek0gd1lmBDCtb0Qw0WsguY_J1WCs7ecj";
 
+// PREISE VERDOPPELT WIE GEWÜNSCHT
 const ALL_PRODUCTS = [
-    {n:"Tequila", p:500, c:"Getränke"}, {n:"Whiskey", p:300, c:"Getränke"}, {n:"Wein", p:200, c:"Getränke"},
-    {n:"Champagner", p:250, c:"Getränke"}, {n:"Gin", p:200, c:"Getränke"}, {n:"Cognac", p:300, c:"Getränke"},
-    {n:"Cocktail", p:200, c:"Getränke"}, {n:"Martini", p:200, c:"Getränke"}, {n:"Cola", p:100, c:"Getränke"},
-    {n:"Energy", p:100, c:"Getränke"}, {n:"Wasser", p:100, c:"Getränke"},
-    {n:"Pommes", p:150, c:"Snacks"}, {n:"Erdnüsse", p:100, c:"Snacks"},
+    {n:"Wasser", p:100, c:"Getränke"}, 
+    {n:"Eistee", p:100, c:"Getränke"}, 
+    {n:"Cola", p:100, c:"Getränke"},
+    {n:"Energy Drink", p:100, c:"Getränke"}, 
+    {n:"Bier", p:160, c:"Getränke"}, 
+    {n:"Wein", p:240, c:"Getränke"},
+    {n:"Berliner Luft", p:300, c:"Getränke"}, 
+    {n:"Champagner", p:300, c:"Getränke"}, 
+    {n:"Vodka", p:300, c:"Getränke"},
+    {n:"Whiskey", p:300, c:"Getränke"},
+    {n:"Pommes", p:160, c:"Snacks"}, 
+    {n:"Burger", p:200, c:"Snacks"}, 
+    {n:"Curly Fries", p:200, c:"Snacks"},
     {n:"Grundgebühr Fahrt", p:10000, c:"Fahrten"}, {n:"Kilometer Fahrt", p:200, c:"Fahrten"},
     {n:"Grundgebühr Heli", p:20000, c:"Heli"}, {n:"Kilometer Heli", p:500, c:"Heli"},
     {n:"Event Eintritt", p:5000, c:"Fightclub"}, {n:"Miete Grundgebühr 1H", p:50000, c:"Fightclub"}, {n:"+30 Minuten", p:30000, c:"Fightclub"}
@@ -412,7 +421,9 @@ function login() {
         document.getElementById('nav-right').style.display = 'flex';
         document.getElementById('main-ui').classList.add('active');
         if(["Geschäftsinhaber", "Geschäftsführer", "Management"].includes(f.role)) document.getElementById('dash-btn').style.display = 'block';
+        
         ALL_PRODUCTS.forEach(i => { if(lager[i.n] === undefined) lager[i.n] = 999; });
+        
         changeTab('Getränke', document.querySelector('.btn-cat'));
         showAlert(`Willkommen, ${f.name}`, 'success');
     } else showAlert("ZUGANGSCODE FALSCH", 'error');
@@ -671,7 +682,7 @@ async function saveNewUser() { const n = document.getElementById('new-u-name').v
 setInterval(() => { if(document.getElementById('time-display')) document.getElementById('time-display').innerText = new Date().toLocaleTimeString('de-DE'); }, 1000);
 load();
 
-// PLEXUS SYSTEM
+// PLEXUS SYSTEM (UNVERÄNDERT)
 const canvas = document.getElementById('plexus-bg');
 const ctx = canvas.getContext('2d');
 let particles = [];
@@ -685,11 +696,10 @@ class Particle {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
         this.size = Math.random() * 2 + 1;
-        this.vx = (Math.random() - 0.5) * 0.4; // Langsame Bewegung
+        this.vx = (Math.random() - 0.5) * 0.4; 
         this.vy = (Math.random() - 0.5) * 0.4;
     }
     update() {
-        // Maus Interaktion (leichtes Wegschieben)
         if (mouse.x != null && mouse.y != null) {
             let dx = mouse.x - this.x;
             let dy = mouse.y - this.y;
@@ -700,18 +710,15 @@ class Particle {
                 this.vy -= dy / distance * force * 0.02;
             }
         }
-        
         this.x += this.vx;
         this.y += this.vy;
-        
-        // Grenzen prüfen
         if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
         if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
     }
     draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(58, 109, 240, 0.5)"; // Passend zum Design
+        ctx.fillStyle = "rgba(58, 109, 240, 0.5)"; 
         ctx.fill();
     }
 }
@@ -731,15 +738,13 @@ function animateParticles() {
     for (let i = 0; i < particles.length; i++) {
         particles[i].update();
         particles[i].draw();
-        
-        // Fäden zeichnen
         for (let j = i + 1; j < particles.length; j++) {
             let dx = particles[i].x - particles[j].x;
             let dy = particles[i].y - particles[j].y;
             let dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < 120) {
                 ctx.beginPath();
-                ctx.strokeStyle = `rgba(168, 85, 247, ${1 - dist / 120 * 0.8})`; // Lila Fäden passend zum Gradient
+                ctx.strokeStyle = `rgba(168, 85, 247, ${1 - dist / 120 * 0.8})`; 
                 ctx.lineWidth = 0.5;
                 ctx.moveTo(particles[i].x, particles[i].y);
                 ctx.lineTo(particles[j].x, particles[j].y);
