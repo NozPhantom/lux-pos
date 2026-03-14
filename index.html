@@ -88,7 +88,6 @@ body {
     border: 1px solid var(--border); 
     backdrop-filter: blur(20px); 
     box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-    transition: transform 0.3s ease;
 }
 
 #nav-right { 
@@ -174,8 +173,6 @@ button {
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 10000; backdrop-filter: blur(15px); }
 .modal-content { background: #0a0a0e; padding: 50px; border-radius: 40px; border: 1px solid var(--border); width: 95%; max-width: 650px; position: relative; }
 
-.edit-modal { z-index: 11000 !important; }
-
 #login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
 
 .login-card {
@@ -194,19 +191,13 @@ input, select {
 }
 input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
 
-.menu-dots { position: absolute; top: 30px; right: 30px; cursor: pointer; padding: 10px; z-index: 10; }
-.menu-dots span { display: block; width: 5px; height: 5px; background: var(--text-dim); border-radius: 50%; margin: 3px 0; }
-.menu-dropdown { position: absolute; top: 65px; right: 30px; background: #16161d; border: 1px solid var(--border); border-radius: 15px; display: none; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100; }
-.menu-dropdown button { background: transparent; padding: 12px 20px; border: none; border-bottom: 1px solid var(--border); color: white; font-size: 14px; text-align: left; border-radius: 0; width: 100%; cursor: pointer; }
-.menu-dropdown button:last-child { border-bottom: none; color: var(--danger); }
-.menu-dropdown button:hover { background: rgba(255,255,255,0.05); }
-
-.stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px; }
-.stat-box { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; text-align: center; border: 1px solid var(--border); }
-.stat-val { display: block; font-size: 20px; font-weight: 800; color: var(--primary); margin-top: 5px; }
-.log-table { width: 100%; border-collapse: collapse; color: var(--text); }
-.log-table th { text-align: left; color: var(--text-dim); padding: 10px; border-bottom: 1px solid var(--border); font-size: 12px; }
-.log-table td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 14px; }
+#staff-name-input {
+    border: 2px solid rgba(58, 109, 240, 0.3);
+    background: rgba(0,0,0,0.5);
+    font-weight: 700;
+    margin-bottom: 30px;
+    text-align: center;
+}
 </style>
 </head>
 <body>
@@ -216,12 +207,9 @@ input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
 
 <div id="header-info">
     <div id="time-display" style="font-size: 24px; font-weight: 800; letter-spacing: -1px;">00:00:00</div>
-    <div id="live-stempel" style="display:none; color:var(--success); font-size: 11px; font-weight: 800; letter-spacing: 1px; margin-top: 5px;">• STATUS: ACTIVE</div>
 </div>
 
 <div id="nav-right">
-    <button id="stempel-btn" class="btn-blue" onclick="toggleStempel()">KOMMEN</button>
-    <button class="btn-dark" onclick="openMyLogs()">LOGS</button>
     <button id="dash-btn" class="btn-dark" onclick="toggleView()" style="display:none;">MGMT</button>
     <button class="btn-red" onclick="location.reload()" style="padding: 16px 20px;">✕</button>
 </div>
@@ -249,15 +237,17 @@ input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
     
     <div id="bet-form" style="display:none; background: var(--card); padding: 50px; border-radius: 40px; border: 1px solid var(--border);">
         <h2 style="margin-top:0; font-size: 32px;">Wette platzieren</h2>
-        <div class="grid" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="grid" style="grid-template-columns: 1fr 1fr;">
             <input type="text" id="bet-user" placeholder="Name">
             <input type="text" id="bet-tel" placeholder="Tel">
             <input type="number" id="bet-amount" placeholder="Einsatz">
+            <input type="text" id="bet-target" placeholder="Wette auf...">
         </div>
         <button class="btn-blue" style="width:100%; margin-top:30px; padding: 22px;" onclick="addBetToBill()">WETTE HINZUFÜGEN</button>
     </div>
 
     <div id="bill-area">
+        <input type="text" id="staff-name-input" placeholder="DEIN NAME (FÜR QUITTUNG)">
         <div id="bill-items"></div>
         <div class="discount-wrap">
             <button class="btn-discount active" onclick="setDiscount(0, this)">0%</button>
@@ -274,25 +264,6 @@ input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
     </div>
 </div>
 
-<div id="modal-my-logs" class="modal">
-    <div class="modal-content">
-        <h2 style="margin-top:0;">Meine Statistiken</h2>
-        <div class="stats-grid">
-            <div class="stat-box">Tag<span class="stat-val" id="stat-day">0 €</span></div>
-            <div class="stat-box">Woche<span class="stat-val" id="stat-week">0 €</span></div>
-            <div class="stat-box">Monat<span class="stat-val" id="stat-month">0 €</span></div>
-        </div>
-        <h3 style="margin-bottom:10px;">Arbeitszeiten</h3>
-        <div style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 15px;">
-            <table class="log-table">
-                <thead><tr><th>Datum</th><th>Kommen</th><th>Gehen</th><th>Dauer</th></tr></thead>
-                <tbody id="time-log-body"></tbody>
-            </table>
-        </div>
-        <button class="btn-dark" style="width:100%; margin-top:25px;" onclick="closeModals()">SCHLIESSEN</button>
-    </div>
-</div>
-
 <div id="dash-ui" class="section">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:50px;">
         <h1 style="margin:0; font-size:42px; font-weight: 800;">Management</h1>
@@ -303,59 +274,8 @@ input:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
     <div id="lager-list" class="grid"></div>
 </div>
 
-<div id="modal-edit-name" class="modal edit-modal">
-    <div class="modal-content">
-        <h3>Name ändern</h3>
-        <input type="text" id="custom-name-input">
-        <div style="display:flex; gap:10px;">
-            <button class="btn-blue" style="flex:2" onclick="processNameChange()">SPEICHERN</button>
-            <button class="btn-dark" style="flex:1" onclick="closeEditModal('modal-edit-name')">ABBRUCH</button>
-        </div>
-    </div>
-</div>
-
-<div id="modal-edit-pass" class="modal edit-modal">
-    <div class="modal-content">
-        <h3>Passwort ändern</h3>
-        <input type="text" id="custom-pass-input" placeholder="Neues Passwort">
-        <div style="display:flex; gap:10px;">
-            <button class="btn-blue" style="flex:2" onclick="processPassChange()">SPEICHERN</button>
-            <button class="btn-dark" style="flex:1" onclick="closeEditModal('modal-edit-pass')">ABBRUCH</button>
-        </div>
-    </div>
-</div>
-
-<div id="modal-edit-delete" class="modal edit-modal">
-    <div class="modal-content">
-        <h3 style="color:var(--danger)">Login löschen?</h3>
-        <p>Möchtest du diesen Account wirklich entfernen? Dies kann nicht rückgängig gemacht werden.</p>
-        <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="btn-red" style="flex:2" onclick="processDelete()">LÖSCHEN</button>
-            <button class="btn-dark" style="flex:1" onclick="closeEditModal('modal-edit-delete')">ABBRUCH</button>
-        </div>
-    </div>
-</div>
-
-<div id="modal-new-user" class="modal"><div class="modal-content"><h3>Neuer Zugang</h3><input type="text" id="new-u-name" placeholder="Name"><input type="password" id="new-u-pass" placeholder="Passwort"><select id="new-u-role"><option>Bartender</option><option>Kellner</option><option>Security</option><option>Reception</option><option>Management</option><option>Geschäftsführer</option><option>Geschäftsinhaber</option></select><label style="display:flex; align-items:center; gap:10px; margin: 20px 0; color: var(--text-dim);"><input type="checkbox" id="new-u-chauffeur" style="width:auto; margin:0;"> Zweitrolle Chauffeur</label><div style="display:flex; gap:15px; margin-top:40px;"><button class="btn-blue" style="flex:2" onclick="saveNewUser()">SPEICHERN</button><button class="btn-dark" style="flex:1" onclick="closeModals()">ABBRUCH</button></div></div></div>
+<div id="modal-new-user" class="modal"><div class="modal-content"><h3>Neuer Zugang</h3><input type="text" id="new-u-name" placeholder="Name"><input type="password" id="new-u-pass" placeholder="Passwort"><select id="new-u-role"><option>Management</option><option>Geschäftsführer</option></select><div style="display:flex; gap:15px; margin-top:40px;"><button class="btn-blue" style="flex:2" onclick="saveNewUser()">SPEICHERN</button><button class="btn-dark" style="flex:1" onclick="closeModals()">ABBRUCH</button></div></div></div>
 <div id="modal-lager-edit" class="modal"><div class="modal-content"><h3 id="lager-edit-title">Bestand</h3><input type="number" id="lager-edit-val" placeholder="Menge"><button class="btn-blue" style="width:100%" onclick="saveLagerEdit()">SPEICHERN</button></div></div>
-
-<div id="modal-user-view" class="modal">
-    <div class="modal-content">
-        <div class="menu-dots" onclick="toggleUserMenu(event)">
-            <span></span><span></span><span></span>
-        </div>
-        <div class="menu-dropdown" id="user-menu-dropdown">
-            <button onclick="uiEditName()">Name ändern</button>
-            <button onclick="uiEditPass()">Passwort ändern</button>
-            <button onclick="uiEditDelete()">Login löschen</button>
-        </div>
-        <h2 id="view-u-name" style="margin: 0 0 5px 0; font-size: 32px;"></h2>
-        <p id="view-u-role" style="color:var(--primary); font-weight:800; font-size: 14px; margin: 0 0 30px 0;"></p>
-        <div id="view-u-stats" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:30px;"></div>
-        <div id="view-u-logs" style="max-height:200px; overflow-y:auto; background: rgba(0,0,0,0.2); border-radius: 20px; padding: 15px;"></div>
-        <button class="btn-dark" style="width:100%; margin-top:30px;" onclick="closeModals()">ZURÜCK</button>
-    </div>
-</div>
 
 <script>
 const CLOUD_DB = "https://the-lux-system-default-rtdb.firebaseio.com/data.json";
@@ -363,29 +283,19 @@ const WH_MAIN = "https://discord.com/api/webhooks/1480511718445547564/eF7F71sEzj
 const WH_BETS = "https://discord.com/api/webhooks/1480522708092588064/zdVPCFNZL7SEv9taen6e4zqFYZca32uHVTWC6HDMBisTkG8dQfi5YwFjtaOsYrv8fRkH";
 const WH_STOCK_ALERT = "https://discord.com/api/webhooks/1480549073256710214/nXBqxQMs8fo5PLo_sVyH7STy2tUqOauxdRCXek0gd1lmBDCtb0Qw0WsguY_J1WCs7ecj";
 
-// PREISE VERDOPPELT WIE GEWÜNSCHT
 const ALL_PRODUCTS = [
-    {n:"Wasser", p:100, c:"Getränke"}, 
-    {n:"Eistee", p:100, c:"Getränke"}, 
-    {n:"Cola", p:100, c:"Getränke"},
-    {n:"Energy Drink", p:100, c:"Getränke"}, 
-    {n:"Bier", p:160, c:"Getränke"}, 
-    {n:"Wein", p:240, c:"Getränke"},
-    {n:"Berliner Luft", p:300, c:"Getränke"}, 
-    {n:"Champagner", p:300, c:"Getränke"}, 
-    {n:"Vodka", p:300, c:"Getränke"},
-    {n:"Whiskey", p:300, c:"Getränke"},
-    {n:"Pommes", p:160, c:"Snacks"}, 
-    {n:"Burger", p:200, c:"Snacks"}, 
-    {n:"Curly Fries", p:200, c:"Snacks"},
+    {n:"Wasser", p:100, c:"Getränke"}, {n:"Eistee", p:100, c:"Getränke"}, {n:"Cola", p:100, c:"Getränke"}, {n:"Energy Drink", p:100, c:"Getränke"}, 
+    {n:"Bier", p:160, c:"Getränke"}, {n:"Wein", p:240, c:"Getränke"}, {n:"Berliner Luft", p:300, c:"Getränke"}, {n:"Champagner", p:300, c:"Getränke"}, 
+    {n:"Vodka", p:300, c:"Getränke"}, {n:"Whiskey", p:300, c:"Getränke"},
+    {n:"Pommes", p:160, c:"Snacks"}, {n:"Burger", p:200, c:"Snacks"}, {n:"Curly Fries", p:200, c:"Snacks"},
     {n:"Grundgebühr Fahrt", p:10000, c:"Fahrten"}, {n:"Kilometer Fahrt", p:200, c:"Fahrten"},
     {n:"Grundgebühr Heli", p:20000, c:"Heli"}, {n:"Kilometer Heli", p:500, c:"Heli"},
     {n:"Event Eintritt", p:5000, c:"Fightclub"}, {n:"Miete Grundgebühr 1H", p:50000, c:"Fightclub"}, {n:"+30 Minuten", p:30000, c:"Fightclub"}
 ];
 
-let users = [{name:"LUX_STAFF", pass:"Staff3221", role:"Geschäftsinhaber", logs:[], sales:[], workLogs:[]}];
+let users = [{name:"LUX_STAFF", pass:"Staff3221", role:"Geschäftsinhaber"}];
 let lager = {};
-let basket = {}, manualBets = [], currentUser = null, activeShiftStart = null, currentEditLager = null, selectedUserIdx = null;
+let basket = {}, manualBets = [], currentUser = null, currentEditLager = null;
 let currentDiscount = 0;
 
 function showAlert(msg, type = 'info') {
@@ -395,7 +305,7 @@ function showAlert(msg, type = 'info') {
     alert.innerHTML = `<span>${msg}</span>`;
     container.appendChild(alert);
     setTimeout(() => {
-        alert.style.animation = 'alertOut 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards';
+        alert.style.animation = 'alertOut 0.5s forwards';
         setTimeout(() => alert.remove(), 500);
     }, 3000);
 }
@@ -415,17 +325,13 @@ function login() {
     const f = users.find(x => x.name === u && x.pass === p);
     if(f) {
         currentUser = f;
-        if(!currentUser.sales) currentUser.sales = [];
-        if(!currentUser.workLogs) currentUser.workLogs = [];
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('nav-right').style.display = 'flex';
         document.getElementById('main-ui').classList.add('active');
         if(["Geschäftsinhaber", "Geschäftsführer", "Management"].includes(f.role)) document.getElementById('dash-btn').style.display = 'block';
-        
         ALL_PRODUCTS.forEach(i => { if(lager[i.n] === undefined) lager[i.n] = 999; });
-        
         changeTab('Getränke', document.querySelector('.btn-cat'));
-        showAlert(`Willkommen, ${f.name}`, 'success');
+        showAlert(`Willkommen`, 'success');
     } else showAlert("ZUGANGSCODE FALSCH", 'error');
 }
 
@@ -439,7 +345,7 @@ function renderPOS(cat) {
     document.getElementById('grid-pos').innerHTML = ALL_PRODUCTS.filter(i => i.c === cat).map(i => `
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:start;">
-                <div><b style="font-size:18px;">${i.n}</b><br><small style="color:var(--text-dim)">Bestand: ${lager[i.n] === Infinity ? '∞' : lager[i.n]}</small></div>
+                <div><b style="font-size:18px;">${i.n}</b><br><small style="color:var(--text-dim)">Lager: ${lager[i.n]}</small></div>
                 <div style="font-weight:800; color:var(--primary); font-size:20px;">${i.p}€</div>
             </div>
             <div class="qty-ctrl">
@@ -450,155 +356,81 @@ function renderPOS(cat) {
         </div>`).join('');
 }
 
-function updateBasket(name, val) { 
-    const current = basket[name] || 0;
-    manualInput(name, current + val); 
-}
-
+function updateBasket(name, val) { manualInput(name, (basket[name] || 0) + val); }
 function manualInput(name, val) {
-    let t = parseInt(val) || 0; 
-    if(t < 0) t = 0; 
-    if(lager[name] !== Infinity && t > lager[name]) t = lager[name];
-    basket[name] = t; 
-    const inp = document.getElementById(`inp-${name}`);
-    if(inp) inp.value = t;
+    let t = parseInt(val) || 0; if(t < 0) t = 0; basket[name] = t;
+    const inp = document.getElementById(`inp-${name}`); if(inp) inp.value = t;
     renderBill();
 }
 
 function addBetToBill() {
-    const n = document.getElementById('bet-user').value, t = document.getElementById('bet-tel').value, a = parseInt(document.getElementById('bet-amount').value);
-    if(!n || a < 10000) return showAlert("MINDESTENS 10.000€ EINSATZ", 'error');
-    manualBets.push({name:n, tel:t, amount:a}); 
-    document.getElementById('bet-user').value=""; document.getElementById('bet-tel').value=""; document.getElementById('bet-amount').value=""; 
+    const n = document.getElementById('bet-user').value, 
+          a = parseInt(document.getElementById('bet-amount').value),
+          t = document.getElementById('bet-target').value;
+    if(!n || a < 10000 || !t) return showAlert("Daten unvollständig (Min. 10k € + Ziel)", 'error');
+    manualBets.push({name:n, amount:a, target:t}); 
+    document.getElementById('bet-user').value = ""; document.getElementById('bet-amount').value = ""; document.getElementById('bet-target').value = "";
     renderBill();
     showAlert("Wette hinzugefügt");
 }
 
 function setDiscount(val, btn) {
-    currentDiscount = val;
-    document.querySelectorAll('.btn-discount').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderBill();
+    currentDiscount = val; document.querySelectorAll('.btn-discount').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderBill();
 }
 
 function renderBill() {
-    const billItems = document.getElementById('bill-items');
-    billItems.innerHTML = "";
-    let t = 0;
-    let productsTotal = 0;
-
+    const billItems = document.getElementById('bill-items'); billItems.innerHTML = "";
+    let t = 0, productsTotal = 0;
     for(let n in basket) {
         if(basket[n] > 0) {
-            let i = ALL_PRODUCTS.find(p=>p.n===n);
-            let subtotal = basket[n] * i.p;
-            productsTotal += subtotal;
-            const li = document.createElement('li');
-            li.innerHTML = `<span>${n} x${basket[n]}</span> <span>${subtotal.toLocaleString()} EUR</span>`;
-            billItems.appendChild(li);
+            let i = ALL_PRODUCTS.find(p=>p.n===n); let sub = basket[n] * i.p;
+            productsTotal += sub;
+            billItems.innerHTML += `<li><span>${n} x${basket[n]}</span> <span>${sub.toLocaleString()} EUR</span></li>`;
         }
     }
-
-    let discountAmount = productsTotal * (currentDiscount / 100);
-    let finalProductsTotal = productsTotal - discountAmount;
-    t += finalProductsTotal;
-
-    if(currentDiscount > 0) {
-        const li = document.createElement('li');
-        li.style.color = "var(--success)";
-        li.innerHTML = `<span>Rabatt (${currentDiscount}%)</span> <span>-${discountAmount.toLocaleString()} EUR</span>`;
-        billItems.appendChild(li);
-    }
-
-    manualBets.forEach(b => { 
-        t += b.amount; 
-        const li = document.createElement('li');
-        li.innerHTML = `<span>Wette (${b.name})</span> <span>${b.amount.toLocaleString()} EUR</span>`;
-        billItems.appendChild(li);
-    });
-
-    document.getElementById('bill-total').innerText = t.toLocaleString()+" EUR"; 
-    return t;
+    let disc = productsTotal * (currentDiscount / 100); t = productsTotal - disc;
+    if(currentDiscount > 0) billItems.innerHTML += `<li style="color:var(--success)"><span>Rabatt</span> <span>-${disc.toLocaleString()} EUR</span></li>`;
+    manualBets.forEach(b => { t += b.amount; billItems.innerHTML += `<li><span>Wette [${b.target}] (${b.name})</span> <span>${b.amount.toLocaleString()} EUR</span></li>`; });
+    document.getElementById('bill-total').innerText = t.toLocaleString()+" EUR"; return t;
 }
 
 async function checkout() {
+    const staffName = document.getElementById('staff-name-input').value.trim();
+    if(!staffName) return showAlert("BITTE DEINEN NAMEN EINGEBEN!", 'error');
+    
     const total = renderBill();
-    if (total === 0) return showAlert("Warenkorb ist leer!", 'error');
-    let itemsLogMain = "";
-    if(currentDiscount > 0) itemsLogMain += `⚠️ RABATT GEWÄHRT: ${currentDiscount}%\n`;
+    if (total === 0) return showAlert("Warenkorb leer", 'error');
+
+    let itemsLog = "";
     for (let name in basket) {
         if (basket[name] > 0) {
-            itemsLogMain += `• ${name} x${basket[name]}\n`;
-            if (lager[name] !== undefined && lager[name] !== Infinity) {
+            itemsLog += `• ${name} x${basket[name]}\n`;
+            if (lager[name] !== undefined) {
                 lager[name] -= basket[name];
-                if (lager[name] < 20) {
-                    const stockAlertPayload = { embeds: [{ title: "⚠️ LAGERWARNUNG", color: 16711680, fields: [{ name: "Produkt", value: name, inline: true }, { name: "Bestand", value: lager[name].toString(), inline: true }], timestamp: new Date().toISOString() }] };
-                    fetch(WH_STOCK_ALERT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(stockAlertPayload) }).catch(e => {});
-                }
+                if (lager[name] < 20) fetch(WH_STOCK_ALERT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ embeds: [{ title: "Lager niedrig!", description: name + ": " + lager[name] }] }) });
             }
         }
     }
-    manualBets.forEach(bet => { itemsLogMain += `• Wetteinsatz - ${bet.amount.toLocaleString()} EUR\n`; });
-    const payloadMain = { embeds: [{ title: "🧾 NEUE QUITTUNG", color: 3829232, fields: [{ name: "Mitarbeiter", value: currentUser.name, inline: true }, { name: "Summe", value: total.toLocaleString() + " EUR", inline: true }, { name: "Artikel", value: itemsLogMain }], timestamp: new Date().toISOString() }] };
     
-    fetch(WH_MAIN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadMain) }).catch(() => {});
-    
-    for(let bet of manualBets) {
-        const payloadBet = { embeds: [{ title: "🎰 NEUE WETTE", color: 11040503, fields: [{ name: "Name", value: bet.name, inline: true }, { name: "Tel", value: bet.tel || "N/A", inline: true }, { name: "Einsatz", value: bet.amount.toLocaleString() + " EUR", inline: false }], timestamp: new Date().toISOString() }] };
-        fetch(WH_BETS, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadBet) }).catch(() => {});
-    }
-
-    currentUser.sales.push({ amount: total, date: new Date().toISOString() });
-    
-    basket = {}; 
-    manualBets = [];
-    currentDiscount = 0;
-    document.querySelectorAll('.btn-discount').forEach(b => b.classList.remove('active'));
-    document.querySelector('.btn-discount').classList.add('active'); 
-    
-    await save();
-    renderBill();
-    const curCat = document.querySelector('.btn-cat.active').innerText;
-    renderPOS(curCat === "Flüge" ? "Heli" : curCat);
-    showAlert("QUITTUNG ERFOLGREICH ABGESENDET", 'success');
-}
-
-function toggleStempel() {
-    const btn = document.getElementById('stempel-btn');
-    const now = new Date();
-    if(btn.innerText === "KOMMEN") {
-        activeShiftStart = now; btn.innerText = "GEHEN"; btn.className = "btn-red"; document.getElementById('live-stempel').style.display = "block";
-        showAlert("Dienst begonnen", 'success');
-    } else {
-        const dur = Math.round((now - activeShiftStart) / 1000 / 60);
-        currentUser.workLogs.unshift({
-            date: now.toLocaleDateString('de-DE'),
-            in: activeShiftStart.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}),
-            out: now.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}),
-            duration: dur + " Min"
-        });
-        btn.innerText = "KOMMEN"; btn.className = "btn-blue"; document.getElementById('live-stempel').style.display = "none";
-        save();
-        showAlert(`Dienst beendet (${dur} Min)`);
-    }
-}
-
-function openMyLogs() {
-    const now = new Date();
-    const startDay = new Date(now.setHours(0,0,0,0));
-    const startWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-    const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    let dSum = 0, wSum = 0, mSum = 0;
-    currentUser.sales.forEach(s => {
-        const sd = new Date(s.date);
-        if(sd >= startDay) dSum += s.amount;
-        if(sd >= startWeek) wSum += s.amount;
-        if(sd >= startMonth) mSum += s.amount;
+    manualBets.forEach(b => {
+        itemsLog += `• Wette (${b.name}) auf [${b.target}] - ${b.amount.toLocaleString()} EUR\n`;
+        // Separater Webhook für Wetten
+        fetch(WH_BETS, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ 
+            embeds: [{ title: "🎰 NEUE WETTE", color: 11040503, fields: [
+                { name: "Kunde", value: b.name, inline: true }, 
+                { name: "Einsatz", value: b.amount.toLocaleString() + " EUR", inline: true },
+                { name: "Wette auf", value: b.target },
+                { name: "Angenommen von", value: staffName }
+            ], timestamp: new Date().toISOString() }] 
+        }) });
     });
-    document.getElementById('stat-day').innerText = dSum.toLocaleString() + " €";
-    document.getElementById('stat-week').innerText = wSum.toLocaleString() + " €";
-    document.getElementById('stat-month').innerText = mSum.toLocaleString() + " €";
-    document.getElementById('time-log-body').innerHTML = currentUser.workLogs.map(l => `<tr><td>${l.date}</td><td>${l.in}</td><td style="color:var(--danger)">${l.out}</td><td>${l.duration}</td></tr>`).join('');
-    openModal('modal-my-logs');
+
+    const payload = { embeds: [{ title: "🧾 NEUE QUITTUNG", color: 3829232, fields: [{ name: "Mitarbeiter (Name)", value: staffName, inline: true }, { name: "Summe", value: total.toLocaleString() + " EUR", inline: true }, { name: "Artikel", value: itemsLog || "Keine" }], timestamp: new Date().toISOString() }] };
+    fetch(WH_MAIN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
+    basket = {}; manualBets = []; renderBill(); await save();
+    const curCat = document.querySelector('.btn-cat.active').innerText; renderPOS(curCat === "Flüge" ? "Heli" : curCat);
+    showAlert("QUITTUNG ERSTELLT", 'success');
 }
 
 function toggleView() {
@@ -608,155 +440,39 @@ function toggleView() {
 }
 
 function renderManagement() {
-    document.getElementById('user-list').innerHTML = users.map((u, i) => `<div class="card" onclick="viewUserLogs(${i})" style="cursor:pointer"><b>${u.name}</b><br><small>${u.role}</small></div>`).join('');
-    document.getElementById('lager-list').innerHTML = Object.keys(lager).map(n => `<div class="card" style="padding:20px;"><div style="display:flex; justify-content:space-between; align-items:center;"><small>${n}</small><b>${lager[n]}</b><button class="btn-dark" style="padding:5px 10px;" onclick="openLagerEdit('${n}')">EDIT</button></div></div>`).join('');
+    document.getElementById('user-list').innerHTML = users.map((u, i) => `<div class="card"><b>${u.name}</b><br><small>${u.role}</small></div>`).join('');
+    document.getElementById('lager-list').innerHTML = Object.keys(lager).map(n => `<div class="card"><div style="display:flex; justify-content:space-between;"><small>${n}</small><b>${lager[n]}</b><button onclick="openLagerEdit('${n}')">EDIT</button></div></div>`).join('');
 }
-
-function viewUserLogs(i) {
-    selectedUserIdx = i;
-    const u = users[i];
-    document.getElementById('view-u-name').innerText = u.name;
-    document.getElementById('view-u-role').innerText = u.role.toUpperCase();
-    document.getElementById('user-menu-dropdown').style.display = 'none';
-    openModal('modal-user-view');
-}
-
-function toggleUserMenu(e) {
-    if(e) e.stopPropagation();
-    const d = document.getElementById('user-menu-dropdown');
-    d.style.display = d.style.display === 'flex' ? 'none' : 'flex';
-}
-
-function uiEditName() {
-    document.getElementById('custom-name-input').value = users[selectedUserIdx].name;
-    document.getElementById('user-menu-dropdown').style.display = 'none';
-    openModal('modal-edit-name');
-}
-async function processNameChange() {
-    const val = document.getElementById('custom-name-input').value;
-    if(val) {
-        users[selectedUserIdx].name = val;
-        await save();
-        closeEditModal('modal-edit-name');
-        renderManagement();
-        showAlert("Name aktualisiert");
-    }
-}
-
-function uiEditPass() {
-    document.getElementById('custom-pass-input').value = "";
-    document.getElementById('user-menu-dropdown').style.display = 'none';
-    openModal('modal-edit-pass');
-}
-async function processPassChange() {
-    const val = document.getElementById('custom-pass-input').value;
-    if(val) {
-        users[selectedUserIdx].pass = val;
-        await save();
-        closeEditModal('modal-edit-pass');
-        showAlert("Passwort geändert");
-    }
-}
-
-function uiEditDelete() {
-    document.getElementById('user-menu-dropdown').style.display = 'none';
-    openModal('modal-edit-delete');
-}
-async function processDelete() {
-    users.splice(selectedUserIdx, 1);
-    await save();
-    closeEditModal('modal-edit-delete');
-    closeModals();
-    renderManagement();
-    showAlert("Account gelöscht", 'error');
-}
-
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
-function closeEditModal(id) { document.getElementById(id).style.display='none'; }
 
 function openLagerEdit(n) { currentEditLager = n; document.getElementById('lager-edit-title').innerText = n; openModal('modal-lager-edit'); }
-async function saveLagerEdit() { lager[currentEditLager] = parseInt(document.getElementById('lager-edit-val').value); await save(); closeModals(); renderManagement(); showAlert("Bestand gespeichert"); }
-async function saveNewUser() { const n = document.getElementById('new-u-name').value, p = document.getElementById('new-u-pass').value, r = document.getElementById('new-u-role').value; if(!n || !p) return showAlert("Daten unvollständig", 'error'); users.push({name:n, pass:p, role:r, logs:[], sales:[], workLogs:[]}); await save(); closeModals(); renderManagement(); showAlert("Mitarbeiter angelegt", 'success'); }
+async function saveLagerEdit() { lager[currentEditLager] = parseInt(document.getElementById('lager-edit-val').value); await save(); closeModals(); renderManagement(); }
+async function saveNewUser() { const n = document.getElementById('new-u-name').value, p = document.getElementById('new-u-pass').value, r = document.getElementById('new-u-role').value; users.push({name:n, pass:p, role:r}); await save(); closeModals(); renderManagement(); }
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
 
 setInterval(() => { if(document.getElementById('time-display')) document.getElementById('time-display').innerText = new Date().toLocaleTimeString('de-DE'); }, 1000);
 load();
 
-// PLEXUS SYSTEM (UNVERÄNDERT)
+// PLEXUS SYSTEM
 const canvas = document.getElementById('plexus-bg');
 const ctx = canvas.getContext('2d');
 let particles = [];
-const mouse = { x: null, y: null, radius: 150 };
-
-window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
-window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); });
-
-class Particle {
-    constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 2 + 1;
-        this.vx = (Math.random() - 0.5) * 0.4; 
-        this.vy = (Math.random() - 0.5) * 0.4;
-    }
-    update() {
-        if (mouse.x != null && mouse.y != null) {
-            let dx = mouse.x - this.x;
-            let dy = mouse.y - this.y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance < mouse.radius) {
-                let force = (mouse.radius - distance) / mouse.radius;
-                this.vx -= dx / distance * force * 0.02;
-                this.vy -= dy / distance * force * 0.02;
-            }
-        }
-        this.x += this.vx;
-        this.y += this.vy;
-        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-    }
-    draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(58, 109, 240, 0.5)"; 
-        ctx.fill();
-    }
-}
-
 function initParticles() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
     particles = [];
-    let count = (canvas.width * canvas.height) / 12000;
-    for (let i = 0; i < count; i++) {
-        particles.push(new Particle());
-    }
+    for (let i = 0; i < 100; i++) particles.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5 });
 }
-
-function animateParticles() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < particles.length; i++) {
-        particles[i].update();
-        particles[i].draw();
-        for (let j = i + 1; j < particles.length; j++) {
-            let dx = particles[i].x - particles[j].x;
-            let dy = particles[i].y - particles[j].y;
-            let dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 120) {
-                ctx.beginPath();
-                ctx.strokeStyle = `rgba(168, 85, 247, ${1 - dist / 120 * 0.8})`; 
-                ctx.lineWidth = 0.5;
-                ctx.moveTo(particles[i].x, particles[i].y);
-                ctx.lineTo(particles[j].x, particles[j].y);
-                ctx.stroke();
-            }
-        }
-    }
-    requestAnimationFrame(animateParticles);
+function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if(p.x<0||p.x>canvas.width) p.vx*=-1; if(p.y<0||p.y>canvas.height) p.vy*=-1;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI*2); ctx.fillStyle="rgba(58,109,240,0.5)"; ctx.fill();
+    });
+    requestAnimationFrame(animate);
 }
-
-initParticles();
-animateParticles();
+initParticles(); animate();
+window.onresize = initParticles;
 </script>
 </body>
 </html>
